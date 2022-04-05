@@ -1,0 +1,22 @@
+# Set the desired connector (e.g. MongoDB)
+Source:
+    MongoDB:
+        host: localhost
+        port: 27017
+        db: recommender_dev
+
+# Use the EOSC-Marketplace webpage
+# to associate page_id and service_id
+Marketplace:
+    download: true
+    path: ./page_map
+
+#Reward:
+#    transition: ./transition_rewards.csv
+
+# Calculate connector's metrics
+Metrics: true
+
+
+
+
