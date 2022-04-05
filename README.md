@@ -27,3 +27,17 @@ A framework for counting the recommender metrics
 # Usage
 7. Run from terminal: `./preprocessor.py` in order to prepare the data for the RSmetrics
 8. Run from terminal: `./rsmetrics.py` to run RSmetrics
+
+## Utilities
+
+### Get service catalog script (./get_service_catalog.py)
+
+This script contacts EOSC Marketplace catalog and generates a csv with a list of all available services, their name, id and url
+
+To execute the script issue:
+```
+chmod u+x ./get_service_catalog.py
+./get_service_catalog.py
+```
+
+_Tested with python 3.9_
