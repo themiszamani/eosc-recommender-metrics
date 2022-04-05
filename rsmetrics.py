@@ -9,11 +9,6 @@ import pandas as pd
 
 __copyright__ = "© "+str(datetime.utcnow().year)+", National Infrastructures for Research and Technology (GRNET)"
 
-__author__= 'Nikolaos Triantafyllis (triantafyl@noa.gr)'
-__license__ = "GPLv3"
-__version__ = "1.0"
-__maintainer__ = "Nikolaos Triantafyllis"
-__email__ = "triantafyl@noa.gr"
 __status__ = "Production"
 __version__ = "1.0"
 
