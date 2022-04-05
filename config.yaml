@@ -8,7 +8,7 @@ Source:
 # Use the EOSC-Marketplace webpage
 # to associate page_id and service_id
 Marketplace:
-    download: false
+    download: true
     path: ./page_map
 
 #Reward:
