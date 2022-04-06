@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evaluation Report</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="//netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.css" rel="stylesheet">
+    <style>
+
+.card {
+    animation-name: fadein;
+    animation-duration: 2s;
+}
+
+@keyframes fadein {
+    from {
+        opacity:0;
+    }
+    to {
+        opacity:1;
+    }
+}
+
+.card-user-cov {
+    background-color: #27A1B7;
+    color: #86F6F9;
+}
+
+.card-cat-cov {
+    background-color: #956CAE;
+    color: #FAC0E7;
+}
+
+    </style>
+</head>
+<body>
+    <div class="container mt-2">
+    <nav class="navbar navbar-light bg-light p-2">
+    <a class="navbar-brand" href="#">RS Evaluation Dashboard</a>
+    </nav>
+    <div class="row mt-2 p-2">
+        <h3>Report</h3>
+        
+        <p>
+            <i class="icon-info"></i>
+            <em class="ml-2">This report contains information about the detailed results of the evaluation process of the recommendation system as well as statistics
+                related to the ingested dataset of user actions and recommendations</em>
+        </p>
+    </div>
+    <div class="row">
+        <div class="col-3" >
+            <div class="card shadow mx-auto">
+                <div class="card-header" >
+                    📊 General statistics
+                </div>
+                <ul class="list-group list-group-flush" >
+                  <li class="list-group-item"><i class="icon-user"></i> Users: <code><span  id="val_users"></span></code></li>
+                  <li class="list-group-item"><i class="icon-gift"></i> Recommendations: <code><span  id="val_recommendations"></span></code></li>
+                  <li class="list-group-item"><i class="icon-briefcase"></i> Services: <code><span  id="val_services"></span></code></li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-3" >
+            <div class="card shadow mx-auto has-animation">
+                <div class="card-header">
+                    🏁 User Actions
+                </div>
+                <div class="p-3">
+                    <i class="icon-bolt"></i> <strong>Total Actions: </strong><code><span  id="val_user_actions"></span></code> 
+                    <ul>
+                        <li><i class="icon-user"></i> by registered users: <code><span  id="val_user_actions_registered"></span></code>  <br/><small>(<span id="val_user_actions_registered_perc"></span>%)</small></li>
+                        <li><i class="icon-question-sign"></i> by anonymous users: <code><span  id="val_user_actions_anonymous"></span></code>  <br/><small>(<span id="val_user_actions_anonymous_perc"></span>%)</small></li>
+                    </ul>
+                   
+                </div>
+               
+              
+            </div>
+        </div>
+        <div class="col-3" >
+            <div class="card shadow mx-auto has-animation">
+                <div class="card-header">
+                    📒 User Orders
+                </div>
+                <div class="p-3">
+                    <i class="icon-archive"></i><strong> Total Orders: </strong><code><span  id="val_user_actions_order"></span></code>
+                    <ul>
+                        <li><i class="icon-user"></i> by registered users: <code><span  id="val_user_actions_order_registered"></span></code> <br/><small>(<span id="val_user_actions_order_registered_perc"></span>%)</small></li> 
+                        <li><i class="icon-question-sign"></i> by anonymous users: <code><span  id="val_user_actions_order_anonymous"></span></code>  <br/><small>(<span id="val_user_actions_order_anonymous_perc"></span>%)</small></li>
+                    </ul>
+                   
+                </div>
+               
+              
+            </div>
+        </div>
+        
+    </div>
+    <div class="row mt-2 p-2">
+        <h4>Metrics</h4>
+    </div>
+    <div class="row">
+        <div class="col-4" >
+            <div class="card shadow-lg mx-auto card-user-cov">
+                <div class="card-body m-2 text-center">
+                    <h4><i class="icon-user"></i> User Coverage: <strong><span  id="val_users_suggested_perc"></span>%</strong></h4>
+                </div>
+               
+            </div>
+        </div>
+        <div class="col-4" >
+            <div class="card shadow-lg mx-auto card-cat-cov">
+                <div class="card-body m-2 text-center">
+                    <h4><i class="icon-list"></i> Catalog Coverage: <strong><span  id="val_services_suggested_perc"></span>%</strong></h4>
+                </div>
+               
+            </div>
+        </div>
+    </div>
+
+    
+  
+    
+    <br/>
+    
+    </div> 
+</body>
+<script>
+
+function fill(data){
+    // what to fill
+    let fill_list = ['users', 'recommendations', 'services', 'user_actions','user_actions_order', 'user_actions_registered', 'user_actions_anonymous', 'user_actions_order_registered', 'user_actions_order_anonymous', 'user_actions_registered_perc', 'user_actions_anonymous_perc', 'user_actions_order_registered_perc', 'user_actions_order_anonymous_perc', 'services_suggested_perc', 'users_suggested_perc'];
+
+    for (item of fill_list) {
+        key = 'val_' + item 
+        value = data[item]
+        el = document.getElementById(key).textContent = value
+
+    }
+}
+
+// Autostart
+(function() {
+  fetch('metrics.json')
+  .then(response => response.json())
+  .then(data => fill(data));
+}());
+
+
+</script>
+</html>
