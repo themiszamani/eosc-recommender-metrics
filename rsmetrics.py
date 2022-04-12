@@ -25,7 +25,6 @@ def print_help(func):
  |_|  \_\_____/|_| |_| |_|\___|\__|_|  |_|\___|___/
 """)
         print('Version: ' + __version__)
-        print('License: ' + __license__)
         print( __copyright__+'\n')
         func()
     return inner
