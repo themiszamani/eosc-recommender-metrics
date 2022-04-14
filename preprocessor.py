@@ -9,6 +9,7 @@ import os
 import retrieval
 
 import reward_mapping as rm
+from get_service_catalog import get_eosc_marketplace_url, get_service_catalog_items, get_service_catalog_page_content, save_service_items_to_csv
 
 
 __copyright__ = "© "+str(datetime.utcnow().year)+", National Infrastructures for Research and Technology (GRNET)"
@@ -31,11 +32,22 @@ def print_help(func):
                 |_|                                           
 """)
         print('Version: ' + __version__)
-        print('License: ' + __license__)
         print( __copyright__+'\n')
         func()
     return inner
 
+def remove_service_prefix(text):
+    """Removes '/service/' prefix from eosc service paths
+
+    Args:
+        text (string): string containing a service path
+
+    Returns:
+        string: service path without the /service/ prefix
+    """
+    if text.startswith('/service/'):
+        return text[len('/service/'):]
+    return text
 
 parser = argparse.ArgumentParser(prog='rsmetrics', description='Prepare data for the EOSC Marketplace RS metrics calculation', add_help=False)
 parser.print_help=print_help(parser.print_help)
@@ -72,8 +84,9 @@ class User_Action:
         self.target.page_id=target_page_id
         self.action.order=order
 
-m=Metrics()
 
+
+m=Metrics()
 
 reward_mapping = {
         "order": 1.0,
@@ -118,46 +131,24 @@ recdb = myclient[config["Source"]["MongoDB"]["db"]]
 
 # automatically associate page ids to service ids
 if config['Marketplace']['download']:
-    map_pages=[]
-
-    for ua in recdb["user_action"].find(query):
-
-        # remove page_id that do not mean a specific service
-        path = ua['target']['page_id'].split("/")
-
-        try:
-            if not (path[1]=="services" and (not path[2]=="c")):
-                continue
-        except:
-            continue
-
-        # keep only the service name (remove prefix /services and suffix e.g. summary)
-        map_pages.append("/".join(path[2:3]))
-
-    write_pages=[]
-
-    # keep unique pages
-    map_pages=sorted(list(set(map_pages)))
-
-    for page in map_pages:
-
-        service_id=retrieval.retrieve_id(page)
-
-        if not service_id == None and page:
-           # print("("+page+")",service_id) # temp
-            write_pages.append('{},{}\n'.format(page, service_id))
-
-
-    with open(os.path.join(args.output,config['Marketplace']['path']), 'w') as outfile:
-        outfile.writelines(write_pages)
+    service_list_path = os.path.join(args.output,config['Marketplace']['path'])
+    eosc_url = get_eosc_marketplace_url()
+    print(
+        "Retrieving page: marketplace list of services... \nGrabbing url: {0}".format(eosc_url))
+    eosc_page_content = get_service_catalog_page_content(eosc_url)
+    print("Page retrieved!\nGenerating results...")
+    eosc_service_results = get_service_catalog_items(eosc_page_content)
+    # output to csv
+    save_service_items_to_csv(eosc_service_results, service_list_path)
+    print("File written to {}".format(service_list_path))
 
 
 # read map file and save in dict
 with open(os.path.join(args.output,config['Marketplace']['path']), 'r') as f:
     lines=f.readlines()
 
-keys=list(map(lambda x: x.split(',')[0].strip(), lines))
-values=list(map(lambda x: x.split(',')[1].strip(), lines))
+keys=list(map(lambda x: remove_service_prefix(x.split(',')[2]).strip(), lines))
+values=list(map(lambda x: x.split(',')[0].strip(), lines))
 
 dmap=dict(zip(keys, values))  #=> {'a': 1, 'b': 2}
 
