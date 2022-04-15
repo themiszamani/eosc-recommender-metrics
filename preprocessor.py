@@ -157,7 +157,6 @@ uas={}
 
 for ua in recdb["user_action"].find(query):
 
-   # print(ua)
     # set -1 to anonymous users
     try:
         user=ua['user']
@@ -166,7 +165,9 @@ for ua in recdb["user_action"].find(query):
 
     # process data that map from page id to service id exist
     try:
-        service_id=dmap["/".join(ua['target']['page_id'].split('/')[2:3])]
+        _pageid="/"+"/".join(ua['target']['page_id'].split('/')[1:3])
+        service_id=dmap[_pageid]
+
     except:
         continue
 
