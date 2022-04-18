@@ -20,13 +20,79 @@ A framework for counting the recommender metrics
 
 # Dependencies
 1. Install Conda from here: https://docs.conda.io/projects/conda/en/latest/user-guide/install/linux.html. Tested on conda v 4.10.3.
-2. Run from terminal: `conda env create -f rsmetrics_env.yml`
+2. Run from terminal: `conda env create -f environment.yml`
 3. Run from terminal: `conda activate rsmetrics`
 4. Run from terminal: `chmod +x ./preprocessor.py ./rsmetrics.py`
 
 # Usage
 7. Run from terminal: `./preprocessor.py` in order to prepare the data for the RSmetrics
+```bash
+
+  _____                                                       
+ |  __ \                                                      
+ | |__) | __ ___ _ __  _ __ ___   ___ ___  ___ ___  ___  _ __ 
+ |  ___/ '__/ _ \ '_ \| '__/ _ \ / __/ _ \/ __/ __|/ _ \| '__|
+ | |   | | |  __/ |_) | | | (_) | (_|  __/\__ \__ \ (_) | |   
+ |_|   |_|  \___| .__/|_|  \___/ \___\___||___/___/\___/|_|   
+                | |                                           
+                |_|                                           
+
+Version: 0.2
+© 2022, National Infrastructures for Research and Technology (GRNET)
+
+usage: preprocessor [-c [FILEPATH]] [-o [DIRPATH]] [-s [DATETIME]] [-e [DATETIME]] [-h]
+                    [-v]
+
+Prepare data for the EOSC Marketplace RS metrics calculation
+
+optional arguments:
+  -c [FILEPATH], --config [FILEPATH]
+                        override default configuration file (./config.yaml)
+  -o [DIRPATH], --output [DIRPATH]
+                        override default output dir path (./data)
+  -s [DATETIME], --starttime [DATETIME]
+                        process data starting from given datetime in ISO format (UTC)
+                        e.g. YYYY-MM-DD
+  -e [DATETIME], --endtime [DATETIME]
+                        process data ending to given datetime in ISO format (UTC) e.g.
+                        YYYY-MM-DD
+  -h, --help            show this help message and exit
+  -v, --version         show program's version number and exit
+```
 8. Run from terminal: `./rsmetrics.py` to run RSmetrics
+```bash
+  _____   _____                _        _          
+ |  __ \ / ____|              | |      (_)         
+ | |__) | (___  _ __ ___   ___| |_ _ __ _  ___ ___ 
+ |  _  / \___ \| '_ ` _ \ / _ \ __| '__| |/ __/ __|
+ | | \ \ ____) | | | | | |  __/ |_| |  | | (__\__ \
+ |_|  \_\_____/|_| |_| |_|\___|\__|_|  |_|\___|___/
+
+Version: 0.2
+© 2022, National Infrastructures for Research and Technology (GRNET)
+
+usage: rsmetrics [-i [FILEPATH]] [-s [DATETIME]] [-e [DATETIME]] [--users] [--services]
+                 [-h] [-v]
+
+Calculate metrics for the EOSC Marketplace RS
+
+optional arguments:
+  -i [FILEPATH], --input [FILEPATH]
+                        override default output dir (./data)
+  -s [DATETIME], --starttime [DATETIME]
+                        calculate metrics starting from given datetime in ISO format
+                        (UTC) e.g. YYYY-MM-DD
+  -e [DATETIME], --endtime [DATETIME]
+                        calculate metrics ending to given datetime in ISO format (UTC)
+                        e.g. YYYY-MM-DD
+  --users               enable reading total users from users.csv, otherwise it will be
+                        calculated according to the user actions
+  --services            enable reading total services from services.csv, otherwise it
+                        will be calculated according to the user actions
+  -h, --help            show this help message and exit
+  -v, --version         show program's version number and exit
+
+```
 
 
 ## Reporting
