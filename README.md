@@ -61,37 +61,11 @@ optional arguments:
 ```
 
 8. Configure `./preprocessor.py` by editting the `config.yaml` or providing another with `-c`:
-| Names        | | Description           | Value  |
-| ------------- |-------------|-------------| -----|
-| Source      | | The source to read the input data. Currently, only MongoDB connection is supported | STRUCT |
-| | MongoDB: host | The MongoDB server's hostname (DNS name or IP)      |   STRING |
-| | MongoDB: port | The MongoDB server's listening port      |   INT |
-
-
-MongoDB: db
-	The RS database name that resides in MongoDB	STRING
-User	
-	Configuration concerning the users	STRUCT
-
-	export	Set to true to export user.csv (total users)	BOOL
-
-	from	This option can be 'user_actions', 'recommendations', 'source' indicating which data to be used to extract this info	STRING
-Service	
-	Configuration concerning the services	
-
-	download	Set to True to download the content from the EOSC-Marketplace and associate page ids to service ids and save it to path	BOOL
-
-	path	Path, so that the Processor can read the page ids - service ids associations	STRING
-
-	export	Set to true to export services.csv (total services)	BOOL
-
-	from	This option can be 'user_actions', 'recommendations', 'page_map', 'source' indicating which data to be used to extract this info	STRING
-User-actions	
-	Configuration concerning the user actions	
-
-	merge	Currently, option is not implemented	BOOL
-Metrics	
-	Set to True to calculate and save initial metrics	BOOL
+<p align="center">
+<a href="https://github.com/nikosT/eosc-recommender-metrics/blob/devel/docs/preprocessor-config.png">
+<img src="https://github.com/nikosT/eosc-recommender-metrics/blob/devel/docs/preprocessor-config.png" width="70%"/>
+</a>
+</p>
 
 
 9. Run from terminal: `./rsmetrics.py` to run RSmetrics
