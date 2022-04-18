@@ -1,14 +1,14 @@
 # eosc-recommender-metrics
 A framework for counting the recommender metrics
 
-# Preprocessor v.1.0
+# Preprocessor v.0.2
 <p align="center">
 <a href="https://github.com/nikosT/Gisola">
 <img src="https://github.com/nikosT/eosc-recommender-metrics/blob/master/docs/Preprocessor.png" width="70%"/>
 </a>
 </p>
 
-# RS metrics v.1.0
+# RS metrics v.0.2
 <p align="center">
 <a href="https://github.com/nikosT/Gisola">
 <img src="https://github.com/nikosT/eosc-recommender-metrics/blob/master/docs/RSmetrics.png" width="70%"/>
