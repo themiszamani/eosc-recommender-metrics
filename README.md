@@ -3,15 +3,15 @@ A framework for counting the recommender metrics
 
 # Preprocessor v.0.2
 <p align="center">
-<a href="https://github.com/nikosT/eosc-recommender-metrics/blob/master/docs/Preprocessor.png">
-<img src="https://github.com/nikosT/eosc-recommender-metrics/blob/master/docs/Preprocessor.png" width="70%"/>
+<a href="https://github.com/nikosT/eosc-recommender-metrics/blob/devel/docs/Preprocessor.png">
+<img src="https://github.com/nikosT/eosc-recommender-metrics/blob/devel/docs/Preprocessor.png" width="70%"/>
 </a>
 </p>
 
 # RS metrics v.0.2
 <p align="center">
-<a href="https://github.com/nikosT/eosc-recommender-metrics/blob/master/docs/RSmetrics.png">
-<img src="https://github.com/nikosT/eosc-recommender-metrics/blob/master/docs/RSmetrics.png" width="70%"/>
+<a href="https://github.com/nikosT/eosc-recommender-metrics/blob/devel/docs/RSmetrics.png">
+<img src="https://github.com/nikosT/eosc-recommender-metrics/blob/devel/docs/RSmetrics.png" width="70%"/>
 </a>
 </p>
 
