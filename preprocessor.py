@@ -51,7 +51,7 @@ def remove_service_prefix(text):
         return text[len('/service/'):]
     return text
 
-parser = argparse.ArgumentParser(prog='rsmetrics', description='Prepare data for the EOSC Marketplace RS metrics calculation', add_help=False)
+parser = argparse.ArgumentParser(prog='preprocessor', description='Prepare data for the EOSC Marketplace RS metrics calculation', add_help=False)
 parser.print_help=print_help(parser.print_help)
 parser._action_groups.pop()
 required = parser.add_argument_group('required arguments')
