@@ -5,6 +5,8 @@ import yaml
 import pymongo
 from datetime import datetime, timezone
 import os
+from natsort import natsorted
+import natsort as ns
 
 import retrieval
 
@@ -14,7 +16,7 @@ from get_service_catalog import get_eosc_marketplace_url, get_service_catalog_it
 
 __copyright__ = "© "+str(datetime.utcnow().year)+", National Infrastructures for Research and Technology (GRNET)"
 __status__ = "Production"
-__version__ = "1.0"
+__version__ = "0.2"
 
 
 os.environ['COLUMNS'] = "90"
@@ -49,7 +51,7 @@ def remove_service_prefix(text):
         return text[len('/service/'):]
     return text
 
-parser = argparse.ArgumentParser(prog='rsmetrics', description='Prepare data for the EOSC Marketplace RS metrics calculation', add_help=False)
+parser = argparse.ArgumentParser(prog='preprocessor', description='Prepare data for the EOSC Marketplace RS metrics calculation', add_help=False)
 parser.print_help=print_help(parser.print_help)
 parser._action_groups.pop()
 required = parser.add_argument_group('required arguments')
@@ -130,8 +132,8 @@ recdb = myclient[config["Source"]["MongoDB"]["db"]]
 
 
 # automatically associate page ids to service ids
-if config['Marketplace']['download']:
-    service_list_path = os.path.join(args.output,config['Marketplace']['path'])
+if config['Service']['download']:
+    service_list_path = os.path.join(args.output,config['Service']['path'])
     eosc_url = get_eosc_marketplace_url()
     print(
         "Retrieving page: marketplace list of services... \nGrabbing url: {0}".format(eosc_url))
@@ -144,7 +146,7 @@ if config['Marketplace']['download']:
 
 
 # read map file and save in dict
-with open(os.path.join(args.output,config['Marketplace']['path']), 'r') as f:
+with open(os.path.join(args.output,config['Service']['path']), 'r') as f:
     lines=f.readlines()
 
 keys=list(map(lambda x: remove_service_prefix(x.split(',')[2]).strip(), lines))
@@ -189,14 +191,14 @@ for ua in recdb["user_action"].find(query):
 
 luas=[]
 
-for user,_ in sorted(uas.items()):
-    for service,act in sorted(uas[user].items()):
+for user,_ in natsorted(uas.items(),alg=ns.ns.SIGNED):
+    for service,act in natsorted(uas[user].items(),alg=ns.ns.SIGNED):
 
         if service:
             luas.append('{},{},{},{},{}\n'.format(user, service, *act))
 
 
-with open(os.path.join(args.output,'dataset.csv'), 'w') as o:
+with open(os.path.join(args.output,'user_actions.csv'), 'w') as o:
     o.writelines(luas)
 
 
@@ -211,15 +213,55 @@ for rec in recdb["recommendation"].find(query):
     for service in rec['services']:
         recs.append('{},{},{},{}\n'.format(user, service, '1', rec['timestamp']))
 
-recs=sorted(recs)
+recs=natsorted(recs,alg=ns.ns.SIGNED)
 
 with open(os.path.join(args.output,'recommendations.csv'), 'w') as o:
     o.writelines(recs)
 
 
+# export user catalog
+if config['User']['export']:
+
+    if config['User']['from']=='user_actions':
+        us=natsorted(list(set(list(map(lambda x: x.split(',')[0]+'\n',luas)))),alg=ns.ns.SIGNED)
+ 
+    elif config['User']['from']=='recommendations':
+        us=natsorted(list(set(list(map(lambda x: x.split(',')[0]+'\n',recs)))),alg=ns.ns.SIGNED)
+
+    else: # 'source'
+        us=natsorted(list(set(list(map(lambda x: str(x['_id'])+'\n',recdb["user"].find({}))))),alg=ns.ns.SIGNED)
+
+    with open(os.path.join(args.output,'users.csv'), 'w') as o:
+        o.writelines(us)
+
+
+# export service catalog
+if config['Service']['export']:
+
+    if config['Service']['from']=='user_actions':
+        ss=natsorted(list(set(list(map(lambda x: x.split(',')[1]+'\n',luas)))),alg=ns.ns.SIGNED)
+ 
+    elif config['Service']['from']=='recommendations':
+        ss=natsorted(list(set(list(map(lambda x: x.split(',')[1]+'\n',recs)))),alg=ns.ns.SIGNED)
+
+    elif config['Service']['from']=='page_map':
+        ss=natsorted(list(set(list(map(lambda x: x+'\n',values)))),alg=ns.ns.SIGNED)
+
+    else: # 'source'
+        if config['Service']['published']:
+            ss=natsorted(list(set(list(map(lambda x: str(x['_id'])+'\n',recdb["service"].find({"status":"published"}))))),alg=ns.ns.SIGNED)
+        else:
+            ss=natsorted(list(set(list(map(lambda x: str(x['_id'])+'\n',recdb["service"].find({}))))),alg=ns.ns.SIGNED)
+
+    with open(os.path.join(args.output,'services.csv'), 'w') as o:
+        o.writelines(ss)
+
+
 # calculate pre metrics
 if config['Metrics']:
     time_range=recdb["user_action"].distinct("timestamp", query)
+
+    m.timestamp=str(datetime.utcnow())
 
     m.users=recdb["user"].count_documents({})
     m.recommendations=recdb["recommendation"].count_documents(query)
@@ -240,14 +282,14 @@ if config['Metrics']:
     m.user_actions_panel=recdb["user_action"].count_documents({**query, **{"source.root.type":"recommendation_panel"}})
     m.user_actions_panel_perc=round(m.user_actions_panel*100.0/m.user_actions,2)
 
-    m.services_suggested=len(recdb["recommendation"].distinct("services", query))
+    m.service_catalog=len(recdb["recommendation"].distinct("services", query))
 
     # catalog coverage
-    m.services_suggested_perc=round(m.services_suggested*100.0/m.services,2)
+    m.service_catalog_perc=round(m.service_catalog*100.0/m.services,2)
 
     # user coverage
-    m.users_suggested=len(recdb["user_action"].distinct("user", query))
-    m.users_suggested_perc=round(m.users_suggested*100.0/m.users,2)
+    m.user_catalog=len(recdb["user_action"].distinct("user", query))
+    m.user_catalog_perc=round(m.user_catalog*100.0/m.users,2)
 
     jsonstr = json.dumps(m.__dict__)
     print(jsonstr)

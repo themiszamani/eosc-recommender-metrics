@@ -5,16 +5,30 @@ Source:
         port: 27017
         db: recommender_dev
 
-# Use the EOSC-Marketplace webpage
-# to associate page_id and service_id
-Marketplace:
+User:
+    export: true
+    #from: 'user_actions'
+    #from: 'recommendations'
+    from: 'source'
+
+Service:
+    # Use the EOSC-Marketplace webpage
+    # to associate page_id and service_id
     download: true
     path: ./page_map
 
-#Reward:
-#    transition: ./transition_rewards.csv
+    export: true
+    #from: 'user_actions'
+    #from: 'recommendations'
+    from: 'source'
+    #from: 'page_map'
 
-# Calculate connector's metrics
+    published: false # applies only on source option
+
+User-actions:
+    merge: false # not implemented yet
+
+# Calculate source's metrics
 Metrics: true
 
 
