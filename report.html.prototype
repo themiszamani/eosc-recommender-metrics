@@ -105,7 +105,7 @@
         <div class="col-4" >
             <div class="card shadow-lg mx-auto card-user-cov">
                 <div class="card-body m-2 text-center">
-                    <h4><i class="icon-user"></i> User Coverage: <strong><span  id="val_users_suggested_perc"></span>%</strong></h4>
+                    <h4><i class="icon-user"></i> User Coverage: <strong><span  id="val_user_coverage_perc"></span>%</strong></h4>
                 </div>
                
             </div>
@@ -113,7 +113,7 @@
         <div class="col-4" >
             <div class="card shadow-lg mx-auto card-cat-cov">
                 <div class="card-body m-2 text-center">
-                    <h4><i class="icon-list"></i> Catalog Coverage: <strong><span  id="val_services_suggested_perc"></span>%</strong></h4>
+                    <h4><i class="icon-list"></i> Catalog Coverage: <strong><span  id="val_catalog_coverage_perc"></span>%</strong></h4>
                 </div>
                
             </div>
@@ -131,7 +131,7 @@
 
 function fill(data){
     // what to fill
-    let fill_list = ['users', 'recommendations', 'services', 'user_actions','user_actions_order', 'user_actions_registered', 'user_actions_anonymous', 'user_actions_order_registered', 'user_actions_order_anonymous', 'user_actions_registered_perc', 'user_actions_anonymous_perc', 'user_actions_order_registered_perc', 'user_actions_order_anonymous_perc', 'services_suggested_perc', 'users_suggested_perc'];
+    let fill_list = ['users', 'recommendations', 'services', 'user_actions','user_actions_order', 'user_actions_registered', 'user_actions_anonymous', 'user_actions_order_registered', 'user_actions_order_anonymous', 'user_actions_registered_perc', 'user_actions_anonymous_perc', 'user_actions_order_registered_perc', 'user_actions_order_anonymous_perc', 'catalog_coverage_perc', 'user_coverage_perc'];
 
     for (item of fill_list) {
         key = 'val_' + item 
