@@ -79,6 +79,7 @@ span:hover:before {
             <em class="ml-2">This report contains information about the detailed results of the evaluation process of the recommendation system as well as statistics
                 related to the ingested dataset of user actions and recommendations</em>
         </p>
+
     </div>
     <div class="row">
         <div class="col-3" >
@@ -151,6 +152,14 @@ span:hover:before {
         </div>
     </div>
 
+<div class="col-4">
+
+        <h3></h3>
+        <p>
+            <i class="icon-clock"></i>
+             <em class="ml-2"> Generated on: <code><i  id="val_timestamp"></i></code> </em>
+        </p>
+</div>
     
   
     
@@ -162,7 +171,7 @@ span:hover:before {
 
 function fill(data){
     // what to fill
-    let fill_list = ['users', 'recommendations', 'services', 'user_actions','user_actions_order', 'user_actions_registered', 'user_actions_anonymous', 'user_actions_order_registered', 'user_actions_order_anonymous', 'user_actions_registered_perc', 'user_actions_anonymous_perc', 'user_actions_order_registered_perc', 'user_actions_order_anonymous_perc', 'catalog_coverage_perc', 'user_coverage_perc'];
+    let fill_list = ['users', 'recommendations', 'services', 'user_actions','user_actions_order', 'user_actions_registered', 'user_actions_anonymous', 'user_actions_order_registered', 'user_actions_order_anonymous', 'user_actions_registered_perc', 'user_actions_anonymous_perc', 'user_actions_order_registered_perc', 'user_actions_order_anonymous_perc', 'catalog_coverage_perc', 'user_coverage_perc', 'timestamp'];
 
     for (item of fill_list) {
         key = 'val_' + item 
@@ -170,8 +179,6 @@ function fill(data){
         value_doc=data[item+'_doc']
         document.getElementById(key).textContent = value
         document.getElementById(key).setAttribute('gloss', value_doc);
-        //document.getElementById(key).gloss=value_doc
-
     }
 }
 
