@@ -11,7 +11,7 @@
 
 .card {
     animation-name: fadein;
-    animation-duration: 2s;
+    animation-duration: 1s;
 }
 
 @keyframes fadein {
@@ -33,7 +33,38 @@
     color: #FAC0E7;
 }
 
-    </style>
+span {
+  position: relative;
+}
+
+span:hover:after {
+  background: #333;
+  background: rgba(0, 0, 0, .8);
+  border-radius: 5px;
+  bottom: -34px;
+  color: #fff;
+  content: attr(gloss);
+  left: 20%;
+  padding: 5px 15px;
+  position: absolute;
+  z-index: 98;
+  width: 350px;
+  font-size: 14px;
+}
+
+span:hover:before {
+  border: solid;
+  border-color: #333 transparent;
+  border-width: 0 6px 6px 6px;
+  bottom: -4px;
+  content: "";
+  left: 50%;
+  position: absolute;
+  z-index: 99;
+  font-size: 14px;
+}
+</style>
+
 </head>
 <body>
     <div class="container mt-2">
@@ -136,7 +167,10 @@ function fill(data){
     for (item of fill_list) {
         key = 'val_' + item 
         value = data[item]
-        el = document.getElementById(key).textContent = value
+        value_doc=data[item+'_doc']
+        document.getElementById(key).textContent = value
+        document.getElementById(key).setAttribute('gloss', value_doc);
+        //document.getElementById(key).gloss=value_doc
 
     }
 }
