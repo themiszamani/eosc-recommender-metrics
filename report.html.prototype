@@ -11,7 +11,7 @@
 
 .card {
     animation-name: fadein;
-    animation-duration: 2s;
+    animation-duration: 1s;
 }
 
 @keyframes fadein {
@@ -33,7 +33,38 @@
     color: #FAC0E7;
 }
 
-    </style>
+span {
+  position: relative;
+}
+
+span:hover:after {
+  background: #333;
+  background: rgba(0, 0, 0, .8);
+  border-radius: 5px;
+  bottom: -34px;
+  color: #fff;
+  content: attr(gloss);
+  left: 20%;
+  padding: 5px 15px;
+  position: absolute;
+  z-index: 98;
+  width: 350px;
+  font-size: 14px;
+}
+
+span:hover:before {
+  border: solid;
+  border-color: #333 transparent;
+  border-width: 0 6px 6px 6px;
+  bottom: -4px;
+  content: "";
+  left: 50%;
+  position: absolute;
+  z-index: 99;
+  font-size: 14px;
+}
+</style>
+
 </head>
 <body>
     <div class="container mt-2">
@@ -48,6 +79,7 @@
             <em class="ml-2">This report contains information about the detailed results of the evaluation process of the recommendation system as well as statistics
                 related to the ingested dataset of user actions and recommendations</em>
         </p>
+
     </div>
     <div class="row">
         <div class="col-3" >
@@ -120,6 +152,14 @@
         </div>
     </div>
 
+<div class="col-4">
+
+        <h3></h3>
+        <p>
+            <i class="icon-clock"></i>
+             <em class="ml-2"> Generated on: <code><i  id="val_timestamp"></i></code> </em>
+        </p>
+</div>
     
   
     
@@ -131,13 +171,14 @@
 
 function fill(data){
     // what to fill
-    let fill_list = ['users', 'recommendations', 'services', 'user_actions','user_actions_order', 'user_actions_registered', 'user_actions_anonymous', 'user_actions_order_registered', 'user_actions_order_anonymous', 'user_actions_registered_perc', 'user_actions_anonymous_perc', 'user_actions_order_registered_perc', 'user_actions_order_anonymous_perc', 'catalog_coverage_perc', 'user_coverage_perc'];
+    let fill_list = ['users', 'recommendations', 'services', 'user_actions','user_actions_order', 'user_actions_registered', 'user_actions_anonymous', 'user_actions_order_registered', 'user_actions_order_anonymous', 'user_actions_registered_perc', 'user_actions_anonymous_perc', 'user_actions_order_registered_perc', 'user_actions_order_anonymous_perc', 'catalog_coverage_perc', 'user_coverage_perc', 'timestamp'];
 
     for (item of fill_list) {
         key = 'val_' + item 
         value = data[item]
-        el = document.getElementById(key).textContent = value
-
+        value_doc=data[item+'_doc']
+        document.getElementById(key).textContent = value
+        document.getElementById(key).setAttribute('gloss', value_doc);
     }
 }
 
