@@ -20,10 +20,10 @@ Service:
     export: true
     #from: 'user_actions'
     #from: 'recommendations'
-    from: 'source'
-    #from: 'page_map'
+    #from: 'source'
+    from: 'page_map'
 
-    published: false # applies only on source option
+    published: true # applies only on source option
 
 User-actions:
     merge: false # not implemented yet
