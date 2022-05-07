@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 import os
 from natsort import natsorted
 import natsort as ns
-
+import pandas as pd
 import retrieval
 
 import reward_mapping as rm
@@ -128,9 +128,6 @@ myclient = pymongo.MongoClient("mongodb://"+config["Source"]["MongoDB"]["host"]+
 recdb = myclient[config["Source"]["MongoDB"]["db"]]
 
 
-
-
-
 # automatically associate page ids to service ids
 if config['Service']['download']:
     service_list_path = os.path.join(args.output,config['Service']['path'])
@@ -155,9 +152,20 @@ values=list(map(lambda x: x.split(',')[0].strip(), lines))
 dmap=dict(zip(keys, values))  #=> {'a': 1, 'b': 2}
 
 
-uas={}
+# reward_mapping.py is modified so that the function
+# reads the Transition rewards csv file once
+# consequently, one argument has been added to the
+# called function
+ROOT_DIR='./'
 
-for ua in recdb["user_action"].find(query):
+TRANSITION_REWARDS_CSV_PATH = os.path.join(
+    ROOT_DIR, "resources", "transition_rewards.csv"
+)
+transition_rewards_df = pd.read_csv(TRANSITION_REWARDS_CSV_PATH, index_col="source")
+
+luas=[]
+
+for ua in recdb["user_action"].find(query).sort("user"):
 
     # set -1 to anonymous users
     try:
@@ -166,44 +174,48 @@ for ua in recdb["user_action"].find(query):
         user=-1
 
     # process data that map from page id to service id exist
+    # for both source and target page ids
+    # if not set service id to -1
+    try:
+        _pageid="/"+"/".join(ua['source']['page_id'].split('/')[1:3])
+        source_service_id=dmap[_pageid]
+    except:
+        source_service_id=-1
+
     try:
         _pageid="/"+"/".join(ua['target']['page_id'].split('/')[1:3])
-        service_id=dmap[_pageid]
-
+        target_service_id=dmap[_pageid]
     except:
-        continue
+        target_service_id=-1
 
-    symbolic_reward=rm.ua_to_reward_id(User_Action(ua['source']['page_id'],
+    # function has been modified where one more argument is given
+    # in order to avoid time-consuming processing of reading csv file
+    # for every func call
+    symbolic_reward=rm.ua_to_reward_id(transition_rewards_df,
+                                       User_Action(ua['source']['page_id'],
                                                    ua['target']['page_id'],
                                                    ua['action']['order']))
 
     reward=reward_mapping[symbolic_reward]
 
-    uas.setdefault(user,{})
+    luas.append('{},{},{},{},{},{},{},{}\n'.format(user, 
+                                          source_service_id, 
+                                          target_service_id, 
+                                          reward, 
+                                          ua['source']['root']['type'], 
+                                          ua['timestamp'], 
+                                          ua['source']['page_id'], 
+                                          ua['target']['page_id']))
 
-    # then we need to merge rewards
-    # keep the max value for each record
-    try:
-        if uas[user][service_id][0] < reward:
-            uas[user][service_id]=[reward, ua['source']['root']['type'], ua['timestamp']]
-    except:
-        uas[user].setdefault(service_id,[reward, ua['source']['root']['type'], ua['timestamp']])
-
-luas=[]
-
-for user,_ in natsorted(uas.items(),alg=ns.ns.SIGNED):
-    for service,act in natsorted(uas[user].items(),alg=ns.ns.SIGNED):
-
-        if service:
-            luas.append('{},{},{},{},{}\n'.format(user, service, *act))
-
+#luas=natsorted(luas,alg=ns.ns.SIGNED)
 
 with open(os.path.join(args.output,'user_actions.csv'), 'w') as o:
     o.writelines(luas)
 
 
+
 recs=[]
-for rec in recdb["recommendation"].find(query):
+for rec in recdb["recommendation"].find(query).sort("user"):
 
     try:
         user=rec['user']
@@ -213,7 +225,7 @@ for rec in recdb["recommendation"].find(query):
     for service in rec['services']:
         recs.append('{},{},{},{}\n'.format(user, service, '1', rec['timestamp']))
 
-recs=natsorted(recs,alg=ns.ns.SIGNED)
+#recs=natsorted(recs,alg=ns.ns.SIGNED)
 
 with open(os.path.join(args.output,'recommendations.csv'), 'w') as o:
     o.writelines(recs)
@@ -233,7 +245,6 @@ if config['User']['export']:
 
     with open(os.path.join(args.output,'users.csv'), 'w') as o:
         o.writelines(us)
-
 
 # export service catalog
 if config['Service']['export']:

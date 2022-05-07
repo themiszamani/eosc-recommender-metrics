@@ -47,7 +47,7 @@ def _to_abstract_page_id(page_id: str, valid_page_ids: List[str]) -> str:
     return "unknown_page_id"
 
 
-def ua_to_reward_id(user_action) -> str:
+def ua_to_reward_id(transition_rewards_df, user_action) -> str:
     """
     This function maps user_action to the symbolic reward.
     Mapping is using ONLY following fields of user_action:
@@ -61,7 +61,7 @@ def ua_to_reward_id(user_action) -> str:
 
     For now it just return generic reward id.
     """
-    transition_rewards_df = pd.read_csv(TRANSITION_REWARDS_CSV_PATH, index_col="source")
+
     valid_page_ids = transition_rewards_df.index.values.tolist()
 
     source = _to_abstract_page_id(user_action.source.page_id, valid_page_ids)
