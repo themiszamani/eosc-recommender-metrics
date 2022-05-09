@@ -274,10 +274,10 @@ if config['Metrics']:
 
     m.timestamp=str(datetime.utcnow())
 
-    ua_start=recdb["user_action"].find_one(sort=[("timestamp", 1)])["timestamp"]
-    ua_end=recdb["user_action"].find_one(sort=[("timestamp", -1)])["timestamp"]
-    rec_start=recdb["recommendation"].find_one(sort=[("timestamp", 1)])["timestamp"]
-    rec_end=recdb["recommendation"].find_one(sort=[("timestamp", -1)])["timestamp"]
+    ua_start=recdb["user_action"].find_one(query,sort=[("timestamp", 1)])["timestamp"]
+    ua_end=recdb["user_action"].find_one(query,sort=[("timestamp", -1)])["timestamp"]
+    rec_start=recdb["recommendation"].find_one(query,sort=[("timestamp", 1)])["timestamp"]
+    rec_end=recdb["recommendation"].find_one(query,sort=[("timestamp", -1)])["timestamp"]
 
     m.start=str(min(ua_start, rec_start))
     m.end=str(max(ua_end, rec_end))
