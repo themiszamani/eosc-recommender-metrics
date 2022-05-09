@@ -73,7 +73,7 @@ if args.starttime and args.endtime:
         sys.exit(0)
 
 # read data
-run.user_actions=pd.read_csv(os.path.join(args.input,'user_actions.csv'),names=["User", "Service", "Reward", "Action", "Timestamp"])
+run.user_actions=pd.read_csv(os.path.join(args.input,'user_actions.csv'),names=["User", "Source_Service", "Target_Service", "Reward", "Action", "Timestamp", "Source_Page_ID", "Target_Page_ID"])
 run.recommendations=pd.read_csv(os.path.join(args.input,'recommendations.csv'),names=["User", "Service", "Rating", "Timestamp"])
 
 # convert timestamp column to datetime object

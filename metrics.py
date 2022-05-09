@@ -38,12 +38,12 @@ def services(object):
     """
     Calculate the total number of unique services
     found in Pandas DataFrame object services (if provided)
-    or user_actions otherwise
+    or user_actions otherwise (from both Source and Target Service)
     """
     if isinstance(object.services, pd.DataFrame):
         return int(object.services.nunique()['Service'])
     else:
-        return int(object.user_actions.nunique()['Service'])
+        return len(np.unique(np.concatenate([object.user_actions['Source_Service'].unique(),object.user_actions['Target_Service'].unique()])))
 
 
 @doc('The total number of recommendations found in recommendations.csv')
