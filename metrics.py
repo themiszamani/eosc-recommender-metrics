@@ -20,6 +20,25 @@ def doc(r):
 
 # Metrics
 
+
+@doc('The initial date where metrics are calculated on')
+def start(object):
+    """
+    Calculate the start date where metrics are calculated on
+    found in min value between Pandas DataFrame object user_action
+    and recommendation
+    """
+    return str(min(min(object.user_actions['Timestamp']),min(object.recommendations['Timestamp'])))
+
+@doc('The final date where metrics are calculated on')
+def end(object):
+    """
+    Calculate the end date where metrics are calculated on
+    found in max value between Pandas DataFrame object user_action
+    and recommendation
+    """
+    return str(max(max(object.user_actions['Timestamp']),max(object.recommendations['Timestamp'])))
+
 @doc('The total number of unique users found in users.csv (if provided), otherwise in user_actions.csv')
 def users(object):
     """
