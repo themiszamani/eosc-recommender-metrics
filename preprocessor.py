@@ -234,14 +234,7 @@ with open(os.path.join(args.output,'recommendations.csv'), 'w') as o:
 # export user catalog
 if config['User']['export']:
 
-    if config['User']['from']=='user_actions':
-        us=natsorted(list(set(list(map(lambda x: x.split(',')[0]+'\n',luas)))),alg=ns.ns.SIGNED)
- 
-    elif config['User']['from']=='recommendations':
-        us=natsorted(list(set(list(map(lambda x: x.split(',')[0]+'\n',recs)))),alg=ns.ns.SIGNED)
-
-    else: # 'source'
-        us=natsorted(list(set(list(map(lambda x: str(x['_id'])+'\n',recdb["user"].find({}))))),alg=ns.ns.SIGNED)
+    us=natsorted(list(set(list(map(lambda x: str(x['_id'])+'\n',recdb["user"].find({}))))),alg=ns.ns.SIGNED)
 
     with open(os.path.join(args.output,'users.csv'), 'w') as o:
         o.writelines(us)
@@ -249,13 +242,7 @@ if config['User']['export']:
 # export service catalog
 if config['Service']['export']:
 
-    if config['Service']['from']=='user_actions':
-        ss=natsorted(list(set(list(map(lambda x: x.split(',')[1]+'\n',luas)))),alg=ns.ns.SIGNED)
- 
-    elif config['Service']['from']=='recommendations':
-        ss=natsorted(list(set(list(map(lambda x: x.split(',')[1]+'\n',recs)))),alg=ns.ns.SIGNED)
-
-    elif config['Service']['from']=='page_map':
+    if config['Service']['from']=='page_map':
         ss=natsorted(list(set(list(map(lambda x: x+'\n',values)))),alg=ns.ns.SIGNED)
 
     else: # 'source'
@@ -270,7 +257,6 @@ if config['Service']['export']:
 
 # calculate pre metrics
 if config['Metrics']:
-    time_range=recdb["user_action"].distinct("timestamp", query)
 
     m.timestamp=str(datetime.utcnow())
 
@@ -283,8 +269,14 @@ if config['Metrics']:
     m.end=str(max(ua_end, rec_end))
 
     m.users=recdb["user"].count_documents({})
+
     m.recommendations=recdb["recommendation"].count_documents(query)
-    m.services=recdb["service"].count_documents({})
+
+    if config['Service']['published']:
+        m.services=recdb["service"].count_documents({"status":"published"})
+    else:
+        m.services=recdb["service"].count_documents({})
+
     m.user_actions=recdb["user_action"].count_documents(query)
 
     m.user_actions_registered=recdb["user_action"].count_documents({**query,**{"user":{"$exists":True}}})
