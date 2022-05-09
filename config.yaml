@@ -25,9 +25,6 @@ Service:
 
     published: true # applies only on source option
 
-User-actions:
-    merge: false # not implemented yet
-
 # Calculate source's metrics
 Metrics: true
 
