@@ -14,7 +14,7 @@ import metrics as m
 __copyright__ = "© "+str(datetime.utcnow().year)+", National Infrastructures for Research and Technology (GRNET)"
 
 __status__ = "Production"
-__version__ = "0.2"
+__version__ = "0.2.2"
 
 
 os.environ['COLUMNS'] = "90"
