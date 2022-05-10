@@ -7,26 +7,20 @@ Source:
 
 User:
     export: true
-    #from: 'user_actions'
-    #from: 'recommendations'
-    from: 'source'
 
 Service:
+    # if true it keeps only published, otherwise all
+    # this has an effect in exporting when from is set to 'source' 
+    # and also in metrics calculations where service is considered
+    published: true
+
     # Use the EOSC-Marketplace webpage
     # to associate page_id and service_id
     download: true
     path: ./page_map
 
     export: true
-    #from: 'user_actions'
-    #from: 'recommendations'
-    from: 'source'
-    #from: 'page_map'
-
-    published: false # applies only on source option
-
-User-actions:
-    merge: false # not implemented yet
+    from: 'page_map' # or 'source'
 
 # Calculate source's metrics
 Metrics: true

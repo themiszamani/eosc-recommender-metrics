@@ -20,6 +20,25 @@ def doc(r):
 
 # Metrics
 
+
+@doc('The initial date where metrics are calculated on')
+def start(object):
+    """
+    Calculate the start date where metrics are calculated on
+    found in min value between Pandas DataFrame object user_action
+    and recommendation
+    """
+    return str(min(min(object.user_actions['Timestamp']),min(object.recommendations['Timestamp'])))
+
+@doc('The final date where metrics are calculated on')
+def end(object):
+    """
+    Calculate the end date where metrics are calculated on
+    found in max value between Pandas DataFrame object user_action
+    and recommendation
+    """
+    return str(max(max(object.user_actions['Timestamp']),max(object.recommendations['Timestamp'])))
+
 @doc('The total number of unique users found in users.csv (if provided), otherwise in user_actions.csv')
 def users(object):
     """
@@ -38,12 +57,12 @@ def services(object):
     """
     Calculate the total number of unique services
     found in Pandas DataFrame object services (if provided)
-    or user_actions otherwise
+    or user_actions otherwise (from both Source and Target Service)
     """
     if isinstance(object.services, pd.DataFrame):
         return int(object.services.nunique()['Service'])
     else:
-        return int(object.user_actions.nunique()['Service'])
+        return len(np.unique(np.concatenate([object.user_actions['Source_Service'].unique(),object.user_actions['Target_Service'].unique()])))
 
 
 @doc('The total number of recommendations found in recommendations.csv')
