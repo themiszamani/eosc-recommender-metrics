@@ -8,8 +8,11 @@ import os
 from natsort import natsorted
 import natsort as ns
 import pandas as pd
+from inspect import getmembers, isfunction
 import retrieval
 
+# local lib
+import pre_metrics as pm
 import reward_mapping as rm
 from get_service_catalog import get_eosc_marketplace_url, get_service_catalog_items, get_service_catalog_page_content, save_service_items_to_csv
 
@@ -258,49 +261,86 @@ if config['Service']['export']:
 # calculate pre metrics
 if config['Metrics']:
 
-    m.timestamp=str(datetime.utcnow())
+    run=pm.Runtime()
+    run.recdb=recdb
+    run.query=query
+    run.config=config
 
-    ua_start=recdb["user_action"].find_one(query,sort=[("timestamp", 1)])["timestamp"]
-    ua_end=recdb["user_action"].find_one(query,sort=[("timestamp", -1)])["timestamp"]
-    rec_start=recdb["recommendation"].find_one(query,sort=[("timestamp", 1)])["timestamp"]
-    rec_end=recdb["recommendation"].find_one(query,sort=[("timestamp", -1)])["timestamp"]
+    md={'timestamp':str(datetime.utcnow())}
 
-    m.start=str(min(ua_start, rec_start))
-    m.end=str(max(ua_end, rec_end))
+    # get all functions found in pre_metrics module
+    # apart from 'doc' func
+    # run and save the result in dictionary
+    # where key is the name of the function
+    # and value what it returns
+    # whereas, for each found functions
+    # an extra key_doc element in dictionary is set
+    # to save the text of the function
+    funcs = list(map(lambda x: x[0], getmembers(pm, isfunction)))
+    funcs = list(filter(lambda x: not x=='doc',funcs))
+    for func in funcs:
+        md[func+'_doc']=getattr(pm, func).text
+        md[func]=getattr(pm, func)(run)
 
-    m.users=recdb["user"].count_documents({})
 
-    m.recommendations=recdb["recommendation"].count_documents(query)
+    jsonstr = json.dumps(md)
 
-    if config['Service']['published']:
-        m.services=recdb["service"].count_documents({"status":"published"})
-    else:
-        m.services=recdb["service"].count_documents({})
+    print(jsonstr)
 
-    m.user_actions=recdb["user_action"].count_documents(query)
+    # Using a JSON string
+    with open(os.path.join(args.output,'pre_metrics.json'), 'w') as outfile:
+        outfile.write(jsonstr)
 
-    m.user_actions_registered=recdb["user_action"].count_documents({**query,**{"user":{"$exists":True}}})
-    m.user_actions_anonymous=m.user_actions-m.user_actions_registered
-    m.user_actions_registered_perc=round(m.user_actions_registered*100.0/m.user_actions,2)
-    m.user_actions_anonymous_perc=100-m.user_actions_registered_perc
 
-    m.user_actions_order=recdb["user_action"].count_documents({**query, **{"action.order":True}})
-    m.user_actions_order_registered=recdb["user_action"].count_documents({**query, **{"action.order":True,"user":{"$exists":True}}})
-    m.user_actions_order_anonymous=m.user_actions_order-m.user_actions_order_registered
-    m.user_actions_order_registered_perc=round(m.user_actions_order_registered*100.0/m.user_actions_order,2)
-    m.user_actions_order_anonymous_perc=100-m.user_actions_order_registered_perc
 
-    m.user_actions_panel=recdb["user_action"].count_documents({**query, **{"source.root.type":"recommendation_panel"}})
-    m.user_actions_panel_perc=round(m.user_actions_panel*100.0/m.user_actions,2)
 
-    m.service_catalog=len(recdb["recommendation"].distinct("services", query))
+
+
+
+
+
+
+
+
+    import sys
+    sys.exit(0)
+
+
+
+    #m.timestamp=str(datetime.utcnow())
+
+    #m.users=recdb["user"].count_documents({})
+
+    #m.recommendations=recdb["recommendation"].count_documents(query)
+
+    #if config['Service']['published']:
+    #    m.services=recdb["service"].count_documents({"status":"published"})
+    #else:
+    #    m.services=recdb["service"].count_documents({})
+
+    #m.user_actions=recdb["user_action"].count_documents(query)
+
+    #m.user_actions_registered=recdb["user_action"].count_documents({**query,**{"user":{"$exists":True}}})
+    #m.user_actions_anonymous=m.user_actions-m.user_actions_registered
+    #m.user_actions_registered_perc=round(m.user_actions_registered*100.0/m.user_actions,2)
+    #m.user_actions_anonymous_perc=100-m.user_actions_registered_perc
+
+    #m.user_actions_order=recdb["user_action"].count_documents({**query, **{"action.order":True}})
+    #m.user_actions_order_registered=recdb["user_action"].count_documents({**query, **{"action.order":True,"user":{"$exists":True}}})
+    #m.user_actions_order_anonymous=m.user_actions_order-m.user_actions_order_registered
+    #m.user_actions_order_registered_perc=round(m.user_actions_order_registered*100.0/m.user_actions_order,2)
+    #m.user_actions_order_anonymous_perc=100-m.user_actions_order_registered_perc
+
+    #m.user_actions_panel=recdb["user_action"].count_documents({**query, **{"source.root.type":"recommendation_panel"}})
+    #m.user_actions_panel_perc=round(m.user_actions_panel*100.0/m.user_actions,2)
 
     # catalog coverage
-    m.service_catalog_perc=round(m.service_catalog*100.0/m.services,2)
+    #m.service_catalog=len(recdb["recommendation"].distinct("services", query))
+    #m.service_catalog_perc=round(m.service_catalog*100.0/m.services,2)
 
     # user coverage
-    m.user_catalog=len(recdb["user_action"].distinct("user", query))
-    m.user_catalog_perc=round(m.user_catalog*100.0/m.users,2)
+    #m.user_catalog=len(recdb["user_action"].distinct("user", query))
+    #m.user_catalog_perc=round(m.user_catalog*100.0/m.users,2)
 
     jsonstr = json.dumps(m.__dict__)
     print(jsonstr)
