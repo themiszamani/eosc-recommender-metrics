@@ -291,22 +291,6 @@ if config['Metrics']:
     with open(os.path.join(args.output,'pre_metrics.json'), 'w') as outfile:
         outfile.write(jsonstr)
 
-
-
-
-
-
-
-
-
-
-
-
-    import sys
-    sys.exit(0)
-
-
-
     #m.timestamp=str(datetime.utcnow())
 
     #m.users=recdb["user"].count_documents({})
@@ -342,9 +326,3 @@ if config['Metrics']:
     #m.user_catalog=len(recdb["user_action"].distinct("user", query))
     #m.user_catalog_perc=round(m.user_catalog*100.0/m.users,2)
 
-    jsonstr = json.dumps(m.__dict__)
-    print(jsonstr)
-
-    # Using a JSON string
-    with open(os.path.join(args.output,'pre_metrics.json'), 'w') as outfile:
-        outfile.write(jsonstr)

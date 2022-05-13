@@ -45,7 +45,7 @@ def end(object):
     return str(max(ua_end, rec_end))
 
 
-@doc('The total number of unique users found in source')
+@doc('The total number of unique users found in users of the source')
 def users(object):
     """
     Calculate the total number of unique users 
@@ -54,7 +54,7 @@ def users(object):
     return object.recdb["user"].count_documents({})
 
 
-@doc('The total number of unique services found in source (default to published only)')
+@doc('The total number of unique services found in services of the source')
 def services(object):
     """
     Calculate the total number of unique services
@@ -66,7 +66,7 @@ def services(object):
         return object.recdb["service"].count_documents({})
 
 
-@doc('The total number of recommendations found in source')
+@doc('The total number of recommendations found in recommendations of the source')
 def recommendations(object):
     """
     Calculate the total number of recommendations
@@ -75,7 +75,7 @@ def recommendations(object):
     return object.recdb["recommendation"].count_documents(object.query)
 
 
-@doc('The total number of user actions found in source')
+@doc('The total number of user actions found in user actions of the source')
 def user_actions(object):
     """
     Calculate the total number of user_actions
@@ -84,7 +84,7 @@ def user_actions(object):
     return object.recdb["user_action"].count_documents(object.query)
 
 
-@doc('The total number of user actions occurred by registered users found in source')
+@doc('The total number of user actions occurred by registered users found in user actions of the source')
 def user_actions_registered(object):
     """
     Calculate the total number of user_actions occurred by registered users
@@ -93,7 +93,7 @@ def user_actions_registered(object):
     return object.recdb["user_action"].count_documents({**object.query,**{"user":{"$exists":True}}})
 
 
-@doc('The total number of user actions occurred by anonymous users found in source')
+@doc('The total number of user actions occurred by anonymous users found in user actions of the source')
 def user_actions_anonymous(object):
     """
     Calculate the total number of user_actions occurred by anonymous users
@@ -122,7 +122,7 @@ def user_actions_anonymous_perc(object):
     return round(100.0-user_actions_registered_perc(object),2)
 
 
-@doc('The total number of user actions led to order found in source')
+@doc('The total number of user actions led to order found in user actions of the source')
 def user_actions_order(object):
     """
     Calculate the total number of user_actions led to order
@@ -131,7 +131,7 @@ def user_actions_order(object):
     return object.recdb["user_action"].count_documents({**object.query, **{"action.order":True}})
 
 
-@doc('The total number of user actions led to order by registered users found in source')
+@doc('The total number of user actions led to order by registered users found in user actions of the source')
 def user_actions_order_registered(object):
     """
     Calculate the total number of user_actions led to order by registered users
@@ -140,7 +140,7 @@ def user_actions_order_registered(object):
     return object.recdb["user_action"].count_documents({**object.query, **{"action.order":True,"user":{"$exists":True}}})
 
 
-@doc('The total number of user actions led to order by anonymous users found in source')
+@doc('The total number of user actions led to order by anonymous users found in user actions of the source')
 def user_actions_order_anonymous(object):
     """
     Calculate the total number of user_actions led to order by anonymous users
@@ -169,7 +169,7 @@ def user_actions_order_anonymous_perc(object):
     return round(100.0-user_actions_order_registered_perc(object),2)
 
 
-@doc('The total number of user actions assosicated with the recommendation panel found in source')
+@doc('The total number of user actions assosicated with the recommendation panel found in user actions of the source')
 def user_actions_panel(object):
     """
     Calculate the total number of user_actions assosicated with the recommendation panel
@@ -188,7 +188,7 @@ def user_actions_panel_perc(object):
     return round(user_actions_panel(object)*100.0/user_actions(object),2)
 
 
-@doc('The total number of unique services found in source')
+@doc('The total number of unique services found in recommendations of the source')
 def catalog_coverage(object):
     """
     Calculate the total number of unique services 
@@ -197,7 +197,7 @@ def catalog_coverage(object):
     return len(object.recdb["recommendation"].distinct("services", object.query))
 
 
-@doc('The percentage (%) of unique services found in recommedations.csv to the total number of services (provided or found otherwise in source)')
+@doc('The percentage (%) of unique services found in recommedations of the source to the total number of services (provided or found otherwise in source)')
 def catalog_coverage_perc(object):
     """
     Calculate the percentage (%) of unique services 
@@ -206,16 +206,16 @@ def catalog_coverage_perc(object):
     return round(catalog_coverage(object)*100.0/services(object),2)
 
 
-@doc('The total number of unique users found in recommendations.csv')
+@doc('The total number of unique users found in recommendations of the source')
 def user_coverage(object):
     """
     Calculate the total number of unique users 
     found in source
     """
-    return len(object.recdb["user_action"].distinct("user", object.query))
+    return len(object.recdb["recommendation"].distinct("user", object.query))
 
 
-@doc('The percentage (%) of unique users found in recommedations.csv to the total number of users (provided or found otherwise in source)')
+@doc('The percentage (%) of unique users found in recommedations of the source to the total number of users (provided or found otherwise in source)')
 def user_coverage_perc(object):
     """
     Calculate the percentage (%) of unique users 
