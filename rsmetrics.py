@@ -80,7 +80,7 @@ run.recommendations=pd.read_csv(os.path.join(args.input,'recommendations.csv'),n
 run.user_actions['Timestamp']= pd.to_datetime(run.user_actions['Timestamp'])
 run.recommendations['Timestamp']= pd.to_datetime(run.recommendations['Timestamp'])
 
-# restrict data to datetime range
+# restrict user actions and recommendations data to datetime range
 if args.starttime:
     run.user_actions=run.user_actions[(run.user_actions['Timestamp'] > args.starttime) & (run.user_actions['Timestamp'] < args.endtime)]
     run.recommendations=run.recommendations[(run.recommendations['Timestamp'] > args.starttime) & (run.recommendations['Timestamp'] < args.endtime)]
@@ -97,6 +97,17 @@ if args.users:
 
 if args.services:
     run.services=pd.read_csv(os.path.join(args.input,'services.csv'),names=["Service"])
+
+# remove user actions when user or service does not exist in users' or services' catalogs
+# adding -1 in all catalogs indicating the anonynoums users or not-known services
+run.user_actions = run.user_actions[run.user_actions['User'].isin(run.users['User'].tolist()+[-1])]
+run.user_actions = run.user_actions[run.user_actions['Source_Service'].isin(run.services['Service'].tolist()+[-1])]
+run.user_actions = run.user_actions[run.user_actions['Target_Service'].isin(run.services['Service'].tolist()+[-1])]
+
+# remove recommendations when user or service does not exist in users' or services' catalogs
+# adding -1 in all catalogs indicating the anonynoums users or not-known services
+run.recommendations = run.recommendations[run.recommendations['User'].isin(run.users['User'].tolist()+[-1])]
+run.recommendations = run.recommendations[run.recommendations['Service'].isin(run.services['Service'].tolist()+[-1])]
 
 
 md={'timestamp':str(datetime.utcnow())}
