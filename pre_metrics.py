@@ -212,6 +212,10 @@ def user_coverage(object):
     Calculate the total number of unique users 
     found in source
     """
+    # count also anonymous user as a user
+    anonymous=object.recdb["recommendation"].find_one({'user':None})
+    if anonymous:
+        return len(object.recdb["recommendation"].distinct("user", object.query))+1
     return len(object.recdb["recommendation"].distinct("user", object.query))
 
 
