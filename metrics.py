@@ -73,6 +73,43 @@ def recommendations(object):
     """
     return len(object.recommendations.index)
 
+@doc('The total number of recommendations for registered users found in recommendations.csv')
+def recommendations_registered(object):
+    """
+    Calculate the total number of recommendations for registered users
+    found in Pandas DataFrame object recommendations
+    """
+    return len(object.recommendations[object.recommendations['User'] != -1].index)
+
+
+@doc('The total number of recommendations for anonymous users found in recommendations.csv')
+def recommendations_anonymous(object):
+    """
+    Calculate the total number of recommendations for anonymous users
+    found in Pandas DataFrame object recommendations
+    """
+    return recommendations(object)-recommendations_registered(object)
+
+
+@doc('The percentage (%) of recommendations for registered users to the total recommendations')
+def recommendations_registered_perc(object):
+    """
+    Calculate the percentage (%) of recommendations occurred 
+    by registered users to the total recommendations
+    found in Pandas DataFrame object recommendations (in two decimals)
+    """
+    return round(recommendations_registered(object)*100.0/recommendations(object),2)
+
+
+@doc('The percentage (%) of recommendations for anonymous users to the total recommendations')
+def recommendations_anonymous_perc(object):
+    """
+    Calculate the percentage (%) of recommendations occurred 
+    by anonymous users to the total recommendations
+    found in Pandas DataFrame object recommendations (in two decimals)
+    """
+    return round(100.0-recommendations_registered_perc(object),2)
+
 
 @doc('The total number of user actions found in user_actions.csv')
 def user_actions(object):
