@@ -290,39 +290,3 @@ if config['Metrics']:
     # Using a JSON string
     with open(os.path.join(args.output,'pre_metrics.json'), 'w') as outfile:
         outfile.write(jsonstr)
-
-    #m.timestamp=str(datetime.utcnow())
-
-    #m.users=recdb["user"].count_documents({})
-
-    #m.recommendations=recdb["recommendation"].count_documents(query)
-
-    #if config['Service']['published']:
-    #    m.services=recdb["service"].count_documents({"status":"published"})
-    #else:
-    #    m.services=recdb["service"].count_documents({})
-
-    #m.user_actions=recdb["user_action"].count_documents(query)
-
-    #m.user_actions_registered=recdb["user_action"].count_documents({**query,**{"user":{"$exists":True}}})
-    #m.user_actions_anonymous=m.user_actions-m.user_actions_registered
-    #m.user_actions_registered_perc=round(m.user_actions_registered*100.0/m.user_actions,2)
-    #m.user_actions_anonymous_perc=100-m.user_actions_registered_perc
-
-    #m.user_actions_order=recdb["user_action"].count_documents({**query, **{"action.order":True}})
-    #m.user_actions_order_registered=recdb["user_action"].count_documents({**query, **{"action.order":True,"user":{"$exists":True}}})
-    #m.user_actions_order_anonymous=m.user_actions_order-m.user_actions_order_registered
-    #m.user_actions_order_registered_perc=round(m.user_actions_order_registered*100.0/m.user_actions_order,2)
-    #m.user_actions_order_anonymous_perc=100-m.user_actions_order_registered_perc
-
-    #m.user_actions_panel=recdb["user_action"].count_documents({**query, **{"source.root.type":"recommendation_panel"}})
-    #m.user_actions_panel_perc=round(m.user_actions_panel*100.0/m.user_actions,2)
-
-    # catalog coverage
-    #m.service_catalog=len(recdb["recommendation"].distinct("services", query))
-    #m.service_catalog_perc=round(m.service_catalog*100.0/m.services,2)
-
-    # user coverage
-    #m.user_catalog=len(recdb["user_action"].distinct("user", query))
-    #m.user_catalog_perc=round(m.user_catalog*100.0/m.users,2)
-
