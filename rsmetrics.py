@@ -46,8 +46,8 @@ optional.add_argument('-i', '--input', metavar=('FILEPATH'), help='override defa
 optional.add_argument('-s', '--starttime', metavar=('DATETIME'), help='calculate metrics starting from given datetime in ISO format (UTC) e.g. YYYY-MM-DD', nargs='?', default=None)
 optional.add_argument('-e', '--endtime', metavar=('DATETIME'), help='calculate metrics ending to given datetime in ISO format (UTC) e.g. YYYY-MM-DD', nargs='?', default=None)
 
-optional.add_argument('--users', help='enable reading total users from users.csv, otherwise it will be calculated according to the user actions', action='store_true', default=False)
-optional.add_argument('--services', help='enable reading total services from services.csv, otherwise it will be calculated according to the user actions', action='store_true', default=False)
+
+optional.add_argument('--services', help='enable reading total services from services.csv, otherwise it will be calculated according to the user actions', action='store_true', default=True)
 
 optional.add_argument('-h', '--help', action='help', help='show this help message and exit')
 optional.add_argument('-v', '--version', action='version', version='%(prog)s v'+__version__)
@@ -89,12 +89,11 @@ else:
     run.user_actions=run.user_actions[run.user_actions['Timestamp'] < args.endtime]
     run.recommendations=run.recommendations[run.recommendations['Timestamp'] < args.endtime]
 
-# populate users and services
-# if no users or services provided use
-# respective columns found in user_actions instead
-if args.users:
-    run.users=pd.read_csv(os.path.join(args.input,'users.csv'),names=["User"])
 
+# users are populated with two columns: one includes user id and the other includes a list of accessed services
+run.users=pd.read_csv(os.path.join(args.input,'users.csv'),names=["User","Services"],converters={'Services': lambda x: map(int,x.split())})
+    
+# populate services
 if args.services:
     run.services=pd.read_csv(os.path.join(args.input,'services.csv'),names=["Service"])
 
@@ -126,42 +125,9 @@ for func in funcs:
     md[func+'_doc']=getattr(m, func).text
     md[func]=getattr(m, func)(run)
 
-# get uniq values per column of user actions
-#uniq_uas=uas.nunique()
-#uniq_recs=recs.nunique()
 
-#m.users=int(uniq_uas['User']) if not args.users else int(us['User'].nunique())
-#m.services=int(uniq_uas['Service']) if not args.services else int(ss['Service'])
 
-#m.recommendations=len(recs.index)
-#m.user_actions=len(uas.index)
-
-#m.user_actions_registered=len(uas[uas['User'] != -1].index)
-#m.user_actions_anonymous=m.user_actions-m.user_actions_registered
-
-#m.user_actions_registered_perc=round(m.user_actions_registered*100.0/m.user_actions,2)
-#m.user_actions_anonymous_perc=100-m.user_actions_registered_perc
-
-#m.user_actions_order=len(uas[uas['Reward'] == 1.0].index)
-
-#m.user_actions_order_registered=len(uas[(uas['Reward'] == 1.0) & (uas['User'] != -1)].index)
-#m.user_actions_order_anonymous=m.user_actions_order-m.user_actions_order_registered
-#m.user_actions_order_registered_perc=round(m.user_actions_order_registered*100.0/m.user_actions_order,2)
-#m.user_actions_order_anonymous_perc=100-m.user_actions_order_registered_perc
-
-#m.user_actions_panel=len(uas[uas['Action'] == 'recommendation_panel'].index)
-#m.user_actions_panel_perc=round(m.user_actions_panel*100.0/m.user_actions,2)
-
-#m.services_suggested=int(uniq_recs['Service'])
-
-# catalog coverage
-#m.services_suggested_perc=round(m.services_suggested*100.0/m.services,2)
-
-# user coverage
-#m.users_suggested=int(uniq_recs['User'])
-#m.users_suggested_perc=round(m.users_suggested*100.0/m.users,2)
-
-jsonstr = json.dumps(md)
+jsonstr = json.dumps(md,indent=4)
 #jsonstr = json.dumps(m.__dict__)
 print(jsonstr)
 

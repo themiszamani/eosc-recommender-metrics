@@ -10,6 +10,7 @@ import natsort as ns
 import pandas as pd
 from inspect import getmembers, isfunction
 import retrieval
+import csv
 
 # local lib
 import pre_metrics as pm
@@ -237,10 +238,16 @@ with open(os.path.join(args.output,'recommendations.csv'), 'w') as o:
 # export user catalog
 if config['User']['export']:
 
-    us=natsorted(list(set(list(map(lambda x: str(x['_id'])+'\n',recdb["user"].find({}))))),alg=ns.ns.SIGNED)
+    # produce users csv with each user id along with the user's accessed services
+    # query users from database for fields _id and accessed_services then create a list of rows
+    # each rows contains two elements, first: user_id in string format and second: a space separated sorted list of accessed services 
+    users = recdb['user'].find({},{'accessed_services':1})
+    users = list(map(lambda x: [str(x['_id']), " ".join([str(service_id) for service_id in sorted(set(x['accessed_services']))])], users))
 
-    with open(os.path.join(args.output,'users.csv'), 'w') as o:
-        o.writelines(us)
+    # save the users list of rows to a csv file
+    with open(os.path.join(args.output,'users.csv'), 'w') as f:
+        writer = csv.writer(f)
+        writer.writerows(users)
 
 # export service catalog
 if config['Service']['export']:

@@ -47,7 +47,7 @@ def users(object):
     or user_actions otherwise
     """
     if isinstance(object.users, pd.DataFrame):
-        return int(object.users.nunique()['User'])
+        return int(object.users['User'].nunique())
     else:
         return int(object.user_actions.nunique()['User'])
 
@@ -261,4 +261,44 @@ def user_coverage_perc(object):
     """
     return round(user_coverage(object)*100.0/users(object),2)
 
+@doc('The ratio of user hits divided by the total number of users (user hit: a user that has accessed at least one service that is also a personal recommendation)')
+def hit_rate(object):
+    """
+    For each user get the recommended services and the services the user accessed
+    Check if the user has at least one accessed service in recommendations. If yes increase number of hits by one
+    Divide by the total number of users
+    """
+    users = object.users.values.tolist()
+    recs = object.recommendations.values.tolist()
+    # Fill lookup dictionary with all services recommender per user id
+    user_recs = dict()
+    for item in recs:
+        # skip anonymous users
+        if item == -1:
+            continue
+        user_id = item[0]
+        service_id = item[1]
+        if user_id in user_recs.keys():
+            user_recs[user_id].append(service_id)
+        else:
+            user_recs[user_id] = [service_id]
+    
+    hits = 0
+    # For each user in users check if his accessed services are in his recommendations
+    
+    for user in users:
+        user_id = user[0]
+        # create a set of unique accessed services by user
+        services = set(user[1])
+        if user_id in user_recs.keys():
+            # create a set of unique recommended services to the user
+            recommendations = set(user_recs.get(user_id))
+            # intersection should include services that have been both accessed by and recommended to the user 
+            intersection = services.intersection(recommendations)
+            # If the user has at least one service (both recommended and accessed), this user is considered a hit
+            if len(intersection) > 0: 
+                hits = hits + 1
 
+    
+
+    return round(hits/len(users),5)
