@@ -8,6 +8,7 @@ class Runtime:
         self.users=None
         self.services=None
         self.user_actions=None
+        self.user_actions_all=None
         self.recommendations=None
 
 # decorator to add the text attribute to function
@@ -302,3 +303,31 @@ def hit_rate(object):
     
 
     return round(hits/len(users),5)
+
+
+@doc('The number of user clicks through recommendations panels divided by the total times recommendation panels were presented to users. Takes into account all historical data of user actions')
+def click_through_rate(object):
+    """
+    Get only the user actions that present a recommendation panel to the user in the source page
+    Those are actions with the following source paths:
+     - /services
+     - /services/
+     - /services/c/{any category name}
+    Count the items in above list as they represent the times recommendations panels were presented to the users of the portal
+    Narrow the above list into a new subset by selecting only user actions that originate from a recommendation panel
+    Those are actions that have the 'recommendation' string in the Action column
+    Count the items in the subset as they represent the times users clicked through recommendations
+    Divide the items of the subset with the items of the first list to get the click-through rate
+    """
+    
+    # get user actions
+    user_actions_all = object.user_actions_all.values.tolist()
+    
+    # filter only user actions with the needed source paths (/services, /services/, /services/c/...). 
+    # source paths are on the [6] index of each list item
+    user_actions_recpanel_views = list(filter(lambda x: x[6] in ['/services', '/services/'] or x[6].startswith('/services/c/'),user_actions_all))
+    
+    # further filter with those actions that they have 'recommender' 
+    user_actions_recpanel_clicks = list(filter(lambda x: x[4]=='recommendation_panel',user_actions_recpanel_views))
+
+    return round(len(user_actions_recpanel_clicks)/len(user_actions_recpanel_views),2)

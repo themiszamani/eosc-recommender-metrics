@@ -73,20 +73,22 @@ if args.starttime and args.endtime:
         sys.exit(0)
 
 # read data
-run.user_actions=pd.read_csv(os.path.join(args.input,'user_actions.csv'),names=["User", "Source_Service", "Target_Service", "Reward", "Action", "Timestamp", "Source_Page_ID", "Target_Page_ID"])
+run.user_actions_all=pd.read_csv(os.path.join(args.input,'user_actions.csv'),names=["User", "Source_Service", "Target_Service", "Reward", "Action", "Timestamp", "Source_Page_ID", "Target_Page_ID"])
 run.recommendations=pd.read_csv(os.path.join(args.input,'recommendations.csv'),names=["User", "Service", "Rating", "Timestamp"])
 
 # convert timestamp column to datetime object
-run.user_actions['Timestamp']= pd.to_datetime(run.user_actions['Timestamp'])
+run.user_actions_all['Timestamp']= pd.to_datetime(run.user_actions_all['Timestamp'])
+
+
 run.recommendations['Timestamp']= pd.to_datetime(run.recommendations['Timestamp'])
 
 # restrict user actions and recommendations data to datetime range
 if args.starttime:
-    run.user_actions=run.user_actions[(run.user_actions['Timestamp'] > args.starttime) & (run.user_actions['Timestamp'] < args.endtime)]
+    run.user_actions_all=run.user_actions_all[(run.user_actions_all['Timestamp'] > args.starttime) & (run.user_actions_all['Timestamp'] < args.endtime)]
     run.recommendations=run.recommendations[(run.recommendations['Timestamp'] > args.starttime) & (run.recommendations['Timestamp'] < args.endtime)]
 
 else:
-    run.user_actions=run.user_actions[run.user_actions['Timestamp'] < args.endtime]
+    run.user_actions_all=run.user_actions_all[run.user_actions_all['Timestamp'] < args.endtime]
     run.recommendations=run.recommendations[run.recommendations['Timestamp'] < args.endtime]
 
 
@@ -97,9 +99,10 @@ run.users=pd.read_csv(os.path.join(args.input,'users.csv'),names=["User","Servic
 if args.services:
     run.services=pd.read_csv(os.path.join(args.input,'services.csv'),names=["Service"])
 
+
 # remove user actions when user or service does not exist in users' or services' catalogs
 # adding -1 in all catalogs indicating the anonynoums users or not-known services
-run.user_actions = run.user_actions[run.user_actions['User'].isin(run.users['User'].tolist()+[-1])]
+run.user_actions = run.user_actions_all[run.user_actions_all['User'].isin(run.users['User'].tolist()+[-1])]
 run.user_actions = run.user_actions[run.user_actions['Source_Service'].isin(run.services['Service'].tolist()+[-1])]
 run.user_actions = run.user_actions[run.user_actions['Target_Service'].isin(run.services['Service'].tolist()+[-1])]
 
