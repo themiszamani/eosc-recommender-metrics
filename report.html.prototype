@@ -44,11 +44,18 @@
     color: #f9bdd6;
 }
 
+.card-diversity {
+    background-color: #FA8B1C;
+    color:#F4E588;
+}
+
 .card-footer{
     background-color: rgb(247,247,247,0.8);
     color: black;
     font-style: italic;
 }
+
+
 
 span {
   position: relative;
@@ -183,6 +190,14 @@ span:hover:before {
                <div class="card-footer"> <p id="doc_click_through_rate"></p> </div>
             </div>
         </div>
+         <div class="col-5" >
+            <div class="card shadow-lg mx-auto card-diversity">
+                <div class="card-body m-2 text-center">
+                    <h4><i class="icon-spinner"></i> Diversity (Shannon Entropy): <strong><span  id="val_diversity"></span></strong></h4>
+                </div>
+               <div class="card-footer"> <p id="doc_diversity"></p> </div>
+            </div>
+        </div>
     </div>
 
 <div class="col-4">
@@ -207,7 +222,7 @@ function fill(data){
     let fill_list = ['users', 'recommendations', 'services', 'user_actions','user_actions_order', 'user_actions_registered', 
                      'user_actions_anonymous', 'user_actions_order_registered', 'user_actions_order_anonymous', 'user_actions_registered_perc', 
                      'user_actions_anonymous_perc', 'user_actions_order_registered_perc', 'user_actions_order_anonymous_perc', 
-                     'catalog_coverage_perc', 'user_coverage_perc', 'timestamp', 'hit_rate', 'click_through_rate'];
+                     'catalog_coverage_perc', 'user_coverage_perc', 'timestamp', 'hit_rate', 'click_through_rate', 'diversity'];
 
     for (item of fill_list) {
         key = 'val_' + item 
