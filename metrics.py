@@ -331,3 +331,72 @@ def click_through_rate(object):
     user_actions_recpanel_clicks = list(filter(lambda x: x[4]=='recommendation_panel',user_actions_recpanel_views))
 
     return round(len(user_actions_recpanel_clicks)/len(user_actions_recpanel_views),2)
+
+@doc('The diversity of the recommendations according to Shannon Entropy. The entropy is 0 when a single item is always chosen or recommended, and log n when n items are chosen or recommended equally often. (see book https://link.springer.com/10.1007/978-1-4939-7131-2_110158)')
+def diversity(object, anonymous=False):
+    """
+    Calculate Shannon Entropy based on https://elliot.readthedocs.io/en/latest/guide/metrics/diversity.html?highlight=entropy#module-elliot.evaluation.metrics.diversity.shannon_entropy.shannon_entropy. The entropy is 0 when a single item is always chosen or recommended, and log n when n items are chosen or recommended equally often. See more in https://link.springer.com/content/pdf/10.1007/978-1-4899-7637-6.pdf, page 293.
+    """
+    # keep recommendations with or without anonymous suggestions
+    # based on anonymous flag (default=False, i.e. ignore anonymous)
+    if anonymous:
+        recs=object.recommendations
+    else:
+        recs=object.recommendations[(object.recommendations['User'] != -1)]
+
+    # this variable keeps the sum of user_norm (where user_norm is 
+    # the count of how many times a User has been suggested)
+    # however since no cutoff at per user recommendations is applied and 
+    # also since each recommendation entry is one-to-one <user id> <service id> 
+    # then the total number of recommendations is equal to this sum
+    free_norm=len(recs.index) 
+
+    # (remember that recommendations have been previously
+    # filtered based on the existance of users in user.csv and 
+    # services in services.csv)
+
+    # user_norm
+    # group recommendations entries by user id and 
+    # then count how many times each user has been suggested
+    gr_user=recs.groupby(['User']).count()
+
+    # create a dictionary of user_norm in order to
+    # map the user id to the respective user_norm
+    # key=<user id> and value=<user_norm>
+    d_user=gr_user['Service'].to_dict()
+
+    # item_count
+    # group recommendations entries by service id and 
+    # then count how many times each service has been suggested
+    gr_service=recs.groupby(['Service']).count()
+
+    # create a dictionary of item_count in order to
+    # map the service id to the respective item_count
+    # key=<service id> and value=<item_count>
+    d_service=gr_service['User'].to_dict()
+
+    # it loops here for each service id, where
+    # key=service_id
+    for key in d_service:
+        # the impact of the service is calculated here
+        # the below line creates a list of the user ids
+        # where this particular service was suggested to 
+        # the user list can contain duplicate users, 
+        # because the same service might be suggested to 
+        # the same user more than once
+        # for each element of the user list the associated 
+        # user_norm value is found from the d_user dictionary
+        # when all user_norm are found, then they summed up 
+        # to determine the weight of the service
+        weight=sum(list(map(lambda x: 1./d_user[x],recs[(recs['Service']==key)]['User'].tolist())))
+
+        # this line calculates the Shannon Entropy of each particular 
+        # service id and stores it to the d_service dictionary accordingly
+        # initially, the d_service[key] contains the item_count of each service 
+        d_service[key]=-weight*math.log2(d_service[key]/free_norm)
+
+    # an overall value of the Shannon Entropy is returned by 
+    # summing all indivual ones and divide them by the number 
+    # of unique users
+    return round(sum(d_service.values())/len(d_user),4)
+
