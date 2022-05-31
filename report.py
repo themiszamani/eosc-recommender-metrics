@@ -8,6 +8,7 @@ from functools import partial
 import argparse
 from pathlib import Path
 import shutil
+from jinja2 import Template
 
 
 
@@ -22,9 +23,18 @@ def main(args=None):
 
     # create output folder if doesn't exist
     Path(args.output).mkdir(parents=True, exist_ok=True)
-    # copy needed files
-    shutil.copy("./report.html.prototype", args.output+"/index.html")
+    # prepare needed files
+
+    # copy metrics.json to the appropriate folder
     shutil.copy(args.input+"/metrics.json", args.output)
+
+    # modify report.htm.prototype template to generate appropriate html file
+    with open('./report.html.prototype') as f:
+        template = Template(f.read())
+        # fill template with the source of the metric data which will be the metrics.json file
+        # save the template as index.html to the appropriate reports folder
+        template.stream(metric_source="metrics.json").dump(args.output+"/index.html")
+   
 
 
     threading.Thread(target=start_server, args=(args,)).start()

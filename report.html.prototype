@@ -240,7 +240,7 @@ function fill(data){
 
 // Autostart
 (function() {
-  fetch('metrics.json')
+  fetch("{{metric_source}}")
   .then(response => response.json())
   .then(data => fill(data));
 }());
