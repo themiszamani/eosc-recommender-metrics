@@ -175,4 +175,31 @@ chmod u+x ./get_service_catalog.py
 ./get_service_catalog.py
 ```
 
+#### Serve Evaluation Reports as a Service
+
+The `webservice` folder hosts a simple webservice implemented in Flask framework which can be used to host the report results.
+
+__Note__: Please make sure you work in a virtual environment and you have already downloaded the required dependencies by issuing
+`pip install -r requirements.txt` 
+
+The webservice application serves two endpoints
+ - `/` : This is the frontend webpage that displays the Report Results in a UI
+ - `/api` : This api call returns the evaluation metrics in json format
+
+To run the webservice issue:
+```
+cd ./webservice
+flask run
+```
+
+The webservice by default runs in localhost:5000 you can override this by issuing for example:
+```
+flask run -h 127.0.0.1 -p 8080
+```
+
+There is an env variable `RS_EVAL_METRIC_SOURCE` which directs the webservice to the generated `metrics.json` file produced after the evaluation process.
+This by default honors this repo's folder structure and directs to the root `/data/metrics.json` path
+
+You can override this by editing the `.env` file inside the `/webservice` folder, or specificy the `RS_EVAL_METRIC_SOURCE` variable accordingly before executing the `flask run` command
+
 _Tested with python 3.9_

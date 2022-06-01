@@ -1,3 +1,11 @@
+# The following are handy to ignore in this specific project
+# please ignore generated folders with results such as /data and /report
+/data
+/report
+
+# please ignore changes in the configuration file. If default configuration file structure is changed please override this rule with git add -f 
+/config.yaml
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
