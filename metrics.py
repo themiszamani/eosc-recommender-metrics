@@ -400,3 +400,73 @@ def diversity(object, anonymous=False):
     # of unique users
     return round(sum(d_service.values())/len(d_user),4)
 
+@doc('Calculate novelty (Expected Free Discovery -EFD-) as the expected Inverse Collection Frequency -ICF- of (relevant and seen) recommended items')
+def novelty(object, anonymous=False):
+    """
+    Calculate novelty (Expected Free Discovery -EFD-) as 
+    the expected Inverse Collection Frequency -ICF- of 
+    (relevant and seen) recommended items
+    """
+    # inner function to run on each pandas df row
+    def nanmap(row):
+        if np.isnan(row.values[0]):
+            try:
+                return gr_service_target['User'][row.name]
+            except:
+                return gr_service_source['User'][row.name]
+        else:
+            return row
+    # no ranking (rank=1) - recommendation items are equally weighted
+    # no relevance (p(rel)=1) - an item is liked, picked, enjoyed (not such info)
+    # no discount - (disc(k)=1) - user views all recommendation items (not paging)
+
+    # keep recommendations with or without anonymous suggestions
+    # based on anonymous flag (default=False, i.e. ignore anonymous)
+    if anonymous:
+        recs=object.recommendations
+        uas=object.user_actions
+    else:
+        recs=object.recommendations[(object.recommendations['User'] != -1)]
+        uas=object.user_actions[(object.user_actions['User'] != -1)]
+
+    # item_count
+    # group user actions entries by service id and 
+    # then count how many times each service has been suggested
+    gr_service_source=uas.groupby(['Source_Service']).count()
+    gr_service_target=uas.groupby(['Target_Service']).count()
+    # merge above results
+    gr_service=gr_service_source+gr_service_target
+    # when nan value find a keep the other value (search on both dfs)
+    gr_service=gr_service.apply(nanmap, axis=1)
+
+    # create a dictionary of item_count in order to
+    # map the service id to the respective item_count
+    # key=<service id> and value=<item_count>
+    d_service=gr_service['User'].to_dict()
+
+    # this variable keeps the sum of user_norm (where user_norm is 
+    # the count of how many times a User has been suggested)
+    # however since no cutoff at per user recommendations is applied and 
+    # also since each recommendation entry is one-to-one <user id> <service id> 
+    # then the total number of recommendations is equal to this sum
+    norm=sum(d_service.values())    
+
+    # get the max novelty by getting the service with the lowest item_count
+    max_nov=-math.log2(min(d_service.values())/norm)
+
+    # calculate novelty for all services
+    d_service = {service: -math.log2(item_count/norm) for service, item_count in d_service.items()} # fix user_actions not recommendations to gather services
+ 
+    # get all unique users found in recommendations
+    users = recs['User'].unique()
+
+    # use max_nov -> min count if x service not found (removed functionality)
+    d_user={}
+    for u in users:
+        u_norm=len(recs[(recs['User']==u)].index)
+        d_user[u]=sum(list(map(lambda x: d_service.get(x, max_nov),recs[(recs['User']==u)]['Service'].tolist())))/u_norm # fix norm=number of recommended items per user
+
+    # average value (not in elliot)
+    return round(sum(d_user.values())/len(users),4)
+
+
