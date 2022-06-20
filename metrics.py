@@ -469,4 +469,58 @@ def novelty(object, anonymous=False):
     # average value (not in elliot)
     return round(sum(d_user.values())/len(users),4)
 
+@doc('The diversity of the recommendations according to GiniIndex. The index is 0 when all items are chosen equally often, and 1 when a single item is always chosen.(see book https://link.springer.com/10.1007/978-1-4939-7131-2_110158)')
+def diversity_gini(object, anonymous=False):
+    """
+    Calculate GiniIndex based on https://elliot.readthedocs.io/en/latest/_modules/elliot/evaluation/metrics/diversity/gini_index/gini_index.html#GiniIndex.
+    """
+    # keep recommendations with or without anonymous suggestions
+    # based on anonymous flag (default=False, i.e. ignore anonymous)
+    if anonymous:
+        recs=object.recommendations
+    else:
+        recs=object.recommendations[(object.recommendations['User'] != -1)]
+
+    # this variable keeps the sum of user_norm (where user_norm is 
+    # the count of how many times a User has been suggested)
+    # however since no cutoff at per user recommendations is applied and 
+    # also since each recommendation entry is one-to-one <user id> <service id> 
+    # then the total number of recommendations is equal to this sum
+    free_norm=len(recs.index) 
+
+    # (remember that recommendations have been previously
+    # filtered based on the existance of users in user.csv and 
+    # services in services.csv)
+
+    # user_norm
+    # group recommendations entries by user id and 
+    # then count how many times each user has been suggested
+    #gr_user=recs.groupby(['User']).count()
+
+    # create a dictionary of user_norm in order to
+    # map the user id to the respective user_norm
+    # key=<user id> and value=<user_norm>
+    #d_user=gr_user['Service'].to_dict()
+
+    # item_count
+    # group recommendations entries by service id and 
+    # then count how many times each service has been suggested
+    gr_service=recs.groupby(['Service']).count()
+
+    # create a dictionary of item_count in order to
+    # map the service id to the respective item_count
+    # key=<service id> and value=<item_count>
+    d_service=gr_service['User'].to_dict()
+
+
+    n_recommended_items = len(d_service)
+    num_items = services(object)
+
+    gini = sum([(2 * (j + 1 + num_items-n_recommended_items) -num_items -1) * (cs / free_norm) for j, cs in enumerate(sorted(d_service.values()))])
+
+    gini /= (num_items - 1)
+    gini = 1 - gini
+
+    return round(gini,4)
+
 
