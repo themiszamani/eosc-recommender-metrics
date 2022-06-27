@@ -239,8 +239,13 @@ def user_actions_panel_perc(object):
     return round(user_actions_panel(object)*100.0/user_actions(object),2)
 
 
+<<<<<<< HEAD
 @statistic('The total number of unique services found in recommendations.csv')
 def total_unique_services_recommended(object):
+=======
+@metric('The total number of unique services found in recommendations.csv')
+def catalog_coverage(object):
+>>>>>>> 5c3055b (REC-55 Reorganize metrics output)
     """
     Calculate the total number of unique services 
     found in recommendations.csv
@@ -248,8 +253,13 @@ def total_unique_services_recommended(object):
     return int(object.recommendations.nunique()['Service'])
 
 
+<<<<<<< HEAD
 @metric('The percentage (%) of unique services found in recommedations.csv to the total number of services (provided or found otherwise in user_actions.csv)')
 def catalog_coverage(object):
+=======
+@statistic('The percentage (%) of unique services found in recommedations.csv to the total number of services (provided or found otherwise in user_actions.csv)')
+def catalog_coverage_perc(object):
+>>>>>>> 5c3055b (REC-55 Reorganize metrics output)
     """
     Calculate the percentage (%) of unique services 
     found in recommedations.csv to the total number 
@@ -259,7 +269,11 @@ def catalog_coverage(object):
 
 
 @statistic('The total number of unique users found in recommendations.csv')
+<<<<<<< HEAD
 def total_unique_users_recommended(object):
+=======
+def user_coverage(object):
+>>>>>>> 5c3055b (REC-55 Reorganize metrics output)
     """
     Calculate the total number of unique users 
     found in recommendations.csv
@@ -267,8 +281,13 @@ def total_unique_users_recommended(object):
     return int(object.recommendations.nunique()['User'])
 
 
+<<<<<<< HEAD
 @metric('The percentage (%) of unique users found in recommedations.csv to the total number of users (provided or found otherwise in user_actions.csv)')
 def user_coverage(object):
+=======
+@statistic('The percentage (%) of unique users found in recommedations.csv to the total number of users (provided or found otherwise in user_actions.csv)')
+def user_coverage_perc(object):
+>>>>>>> 5c3055b (REC-55 Reorganize metrics output)
     """
     Calculate the percentage (%) of unique users 
     found in recommedations.csv to the total number 
