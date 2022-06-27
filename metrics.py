@@ -11,18 +11,28 @@ class Runtime:
         self.user_actions_all=None
         self.recommendations=None
 
-# decorator to add the text attribute to function
-def doc(r):
+
+
+# decorator to add the text attribute to function as major metric
+def metric(txt):
     def wrapper(f):
-        f.text = r
+        f.kind = "metric"
+        f.doc = txt
         return f
     return wrapper
 
+# decorator to add the text attribute to function
+def statistic(txt):
+    def wrapper(f):
+        f.kind = "statistic"
+        f.doc = txt
+        return f
+    return wrapper
 
 # Metrics
 
 
-@doc('The initial date where metrics are calculated on')
+@statistic('The initial date where metrics are calculated on')
 def start(object):
     """
     Calculate the start date where metrics are calculated on
@@ -31,7 +41,8 @@ def start(object):
     """
     return str(min(min(object.user_actions['Timestamp']),min(object.recommendations['Timestamp'])))
 
-@doc('The final date where metrics are calculated on')
+
+@statistic('The final date where metrics are calculated on')
 def end(object):
     """
     Calculate the end date where metrics are calculated on
@@ -40,7 +51,8 @@ def end(object):
     """
     return str(max(max(object.user_actions['Timestamp']),max(object.recommendations['Timestamp'])))
 
-@doc('The total number of unique users found in users.csv (if provided), otherwise in user_actions.csv')
+
+@statistic('The total number of unique users found in users.csv (if provided), otherwise in user_actions.csv')
 def users(object):
     """
     Calculate the total number of unique users 
@@ -53,7 +65,7 @@ def users(object):
         return int(object.user_actions.nunique()['User'])
 
 
-@doc('The total number of unique services found in services.csv (if provided), otherwise in user_actions.csv')
+@statistic('The total number of unique services found in services.csv (if provided), otherwise in user_actions.csv')
 def services(object):
     """
     Calculate the total number of unique services
@@ -66,7 +78,7 @@ def services(object):
         return len(np.unique(np.concatenate([object.user_actions['Source_Service'].unique(),object.user_actions['Target_Service'].unique()])))
 
 
-@doc('The total number of recommendations found in recommendations.csv')
+@statistic('The total number of recommendations found in recommendations.csv')
 def recommendations(object):
     """
     Calculate the total number of recommendations
@@ -74,7 +86,8 @@ def recommendations(object):
     """
     return len(object.recommendations.index)
 
-@doc('The total number of recommendations for registered users found in recommendations.csv')
+
+@statistic('The total number of recommendations for registered users found in recommendations.csv')
 def recommendations_registered(object):
     """
     Calculate the total number of recommendations for registered users
@@ -83,7 +96,7 @@ def recommendations_registered(object):
     return len(object.recommendations[object.recommendations['User'] != -1].index)
 
 
-@doc('The total number of recommendations for anonymous users found in recommendations.csv')
+@statistic('The total number of recommendations for anonymous users found in recommendations.csv')
 def recommendations_anonymous(object):
     """
     Calculate the total number of recommendations for anonymous users
@@ -92,7 +105,8 @@ def recommendations_anonymous(object):
     return recommendations(object)-recommendations_registered(object)
 
 
-@doc('The percentage (%) of recommendations for registered users to the total recommendations')
+
+@statistic('The percentage (%) of recommendations for registered users to the total recommendations')
 def recommendations_registered_perc(object):
     """
     Calculate the percentage (%) of recommendations occurred 
@@ -102,7 +116,7 @@ def recommendations_registered_perc(object):
     return round(recommendations_registered(object)*100.0/recommendations(object),2)
 
 
-@doc('The percentage (%) of recommendations for anonymous users to the total recommendations')
+@statistic('The percentage (%) of recommendations for anonymous users to the total recommendations')
 def recommendations_anonymous_perc(object):
     """
     Calculate the percentage (%) of recommendations occurred 
@@ -112,7 +126,7 @@ def recommendations_anonymous_perc(object):
     return round(100.0-recommendations_registered_perc(object),2)
 
 
-@doc('The total number of user actions found in user_actions.csv')
+@statistic('The total number of user actions found in user_actions.csv')
 def user_actions(object):
     """
     Calculate the total number of user_actions
@@ -121,7 +135,7 @@ def user_actions(object):
     return len(object.user_actions.index)
 
 
-@doc('The total number of user actions occurred by registered users found in user_actions.csv')
+@statistic('The total number of user actions occurred by registered users found in user_actions.csv')
 def user_actions_registered(object):
     """
     Calculate the total number of user_actions occurred by registered users
@@ -130,7 +144,7 @@ def user_actions_registered(object):
     return len(object.user_actions[object.user_actions['User'] != -1].index)
 
 
-@doc('The total number of user actions occurred by anonymous users found in user_actions.csv')
+@statistic('The total number of user actions occurred by anonymous users found in user_actions.csv')
 def user_actions_anonymous(object):
     """
     Calculate the total number of user_actions occurred by anonymous users
@@ -139,7 +153,7 @@ def user_actions_anonymous(object):
     return user_actions(object)-user_actions_registered(object)
 
 
-@doc('The percentage (%) of user actions occurred by registered users to the total user actions')
+@statistic('The percentage (%) of user actions occurred by registered users to the total user actions')
 def user_actions_registered_perc(object):
     """
     Calculate the percentage (%) of user actions occurred 
@@ -149,7 +163,7 @@ def user_actions_registered_perc(object):
     return round(user_actions_registered(object)*100.0/user_actions(object),2)
 
 
-@doc('The percentage (%) of user actions occurred by anonymous users to the total user actions')
+@statistic('The percentage (%) of user actions occurred by anonymous users to the total user actions')
 def user_actions_anonymous_perc(object):
     """
     Calculate the percentage (%) of user actions occurred 
@@ -159,7 +173,7 @@ def user_actions_anonymous_perc(object):
     return round(100.0-user_actions_registered_perc(object),2)
 
 
-@doc('The total number of user actions led to order found in user_actions.csv')
+@statistic('The total number of user actions led to order found in user_actions.csv')
 def user_actions_order(object):
     """
     Calculate the total number of user_actions led to order
@@ -168,7 +182,7 @@ def user_actions_order(object):
     return len(object.user_actions[object.user_actions['Reward'] == 1.0].index)
 
 
-@doc('The total number of user actions led to order by registered users found in user_actions.csv')
+@statistic('The total number of user actions led to order by registered users found in user_actions.csv')
 def user_actions_order_registered(object):
     """
     Calculate the total number of user_actions led to order by registered users
@@ -177,7 +191,7 @@ def user_actions_order_registered(object):
     return len(object.user_actions[(object.user_actions['Reward'] == 1.0) & (object.user_actions['User'] != -1)].index)
 
 
-@doc('The total number of user actions led to order by anonymous users found in user_actions.csv')
+@statistic('The total number of user actions led to order by anonymous users found in user_actions.csv')
 def user_actions_order_anonymous(object):
     """
     Calculate the total number of user_actions led to order by anonymous users
@@ -186,7 +200,7 @@ def user_actions_order_anonymous(object):
     return user_actions_order(object)-user_actions_order_registered(object)
 
 
-@doc('The percentage (%) of user actions occurred by registered users and led to order to the total user actions that led to order')
+@statistic('The percentage (%) of user actions occurred by registered users and led to order to the total user actions that led to order')
 def user_actions_order_registered_perc(object):
     """
     Calculate the percentage (%) of user actions occurred 
@@ -196,7 +210,7 @@ def user_actions_order_registered_perc(object):
     return round(user_actions_order_registered(object)*100.0/user_actions_order(object),2)
 
 
-@doc('The percentage (%) of user actions occurred by anonymous users and led to order to the total user actions that led to order')
+@statistic('The percentage (%) of user actions occurred by anonymous users and led to order to the total user actions that led to order')
 def user_actions_order_anonymous_perc(object):
     """
     Calculate the percentage (%) of user actions occurred 
@@ -206,7 +220,7 @@ def user_actions_order_anonymous_perc(object):
     return round(100.0-user_actions_order_registered_perc(object),2)
 
 
-@doc('The total number of user actions assosicated with the recommendation panel found in user_actions.csv')
+@statistic('The total number of user actions assosicated with the recommendation panel found in user_actions.csv')
 def user_actions_panel(object):
     """
     Calculate the total number of user_actions assosicated with the recommendation panel
@@ -215,7 +229,7 @@ def user_actions_panel(object):
     return len(object.user_actions[object.user_actions['Action'] == 'recommendation_panel'].index)
 
 
-@doc('The percentage (%) of user actions assosicated with the recommendation panel to the total user actions')
+@statistic('The percentage (%) of user actions assosicated with the recommendation panel to the total user actions')
 def user_actions_panel_perc(object):
     """
     Calculate the percentage (%) of user actions assosicated with 
@@ -225,8 +239,8 @@ def user_actions_panel_perc(object):
     return round(user_actions_panel(object)*100.0/user_actions(object),2)
 
 
-@doc('The total number of unique services found in recommendations.csv')
-def catalog_coverage(object):
+@statistic('The total number of unique services found in recommendations.csv')
+def total_unique_services_recommended(object):
     """
     Calculate the total number of unique services 
     found in recommendations.csv
@@ -234,18 +248,18 @@ def catalog_coverage(object):
     return int(object.recommendations.nunique()['Service'])
 
 
-@doc('The percentage (%) of unique services found in recommedations.csv to the total number of services (provided or found otherwise in user_actions.csv)')
-def catalog_coverage_perc(object):
+@metric('The percentage (%) of unique services found in recommedations.csv to the total number of services (provided or found otherwise in user_actions.csv)')
+def catalog_coverage(object):
     """
     Calculate the percentage (%) of unique services 
     found in recommedations.csv to the total number 
     of services (provided or found otherwise in user_actions.csv)
     """
-    return round(catalog_coverage(object)*100.0/services(object),2)
+    return round(total_unique_services_recommended(object)*100.0/services(object),2)
 
 
-@doc('The total number of unique users found in recommendations.csv')
-def user_coverage(object):
+@statistic('The total number of unique users found in recommendations.csv')
+def total_unique_users_recommended(object):
     """
     Calculate the total number of unique users 
     found in recommendations.csv
@@ -253,16 +267,17 @@ def user_coverage(object):
     return int(object.recommendations.nunique()['User'])
 
 
-@doc('The percentage (%) of unique users found in recommedations.csv to the total number of users (provided or found otherwise in user_actions.csv)')
-def user_coverage_perc(object):
+@metric('The percentage (%) of unique users found in recommedations.csv to the total number of users (provided or found otherwise in user_actions.csv)')
+def user_coverage(object):
     """
     Calculate the percentage (%) of unique users 
     found in recommedations.csv to the total number 
     of users (provided or found otherwise in user_actions.csv)
     """
-    return round(user_coverage(object)*100.0/users(object),2)
+    return round(total_unique_users_recommended(object)*100.0/users(object),2)
 
-@doc('The ratio of user hits divided by the total number of users (user hit: a user that has accessed at least one service that is also a personal recommendation)')
+
+@metric('The ratio of user hits divided by the total number of users (user hit: a user that has accessed at least one service that is also a personal recommendation)')
 def hit_rate(object):
     """
     For each user get the recommended services and the services the user accessed
@@ -305,7 +320,7 @@ def hit_rate(object):
     return round(hits/len(users),5)
 
 
-@doc('The number of user clicks through recommendations panels divided by the total times recommendation panels were presented to users. Takes into account all historical data of user actions')
+@metric('The number of user clicks through recommendations panels divided by the total times recommendation panels were presented to users. Takes into account all historical data of user actions')
 def click_through_rate(object):
     """
     Get only the user actions that present a recommendation panel to the user in the source page
@@ -332,7 +347,8 @@ def click_through_rate(object):
 
     return round(len(user_actions_recpanel_clicks)/len(user_actions_recpanel_views),2)
 
-@doc('The diversity of the recommendations according to Shannon Entropy. The entropy is 0 when a single item is always chosen or recommended, and log n when n items are chosen or recommended equally often. (see book https://link.springer.com/10.1007/978-1-4939-7131-2_110158)')
+
+@metric('The diversity of the recommendations according to Shannon Entropy. The entropy is 0 when a single item is always chosen or recommended, and log n when n items are chosen or recommended equally often. (see book https://link.springer.com/10.1007/978-1-4939-7131-2_110158)')
 def diversity(object, anonymous=False):
     """
     Calculate Shannon Entropy based on https://elliot.readthedocs.io/en/latest/guide/metrics/diversity.html?highlight=entropy#module-elliot.evaluation.metrics.diversity.shannon_entropy.shannon_entropy. The entropy is 0 when a single item is always chosen or recommended, and log n when n items are chosen or recommended equally often. See more in https://link.springer.com/content/pdf/10.1007/978-1-4899-7637-6.pdf, page 293.
@@ -400,7 +416,8 @@ def diversity(object, anonymous=False):
     # of unique users
     return round(sum(d_service.values())/len(d_user),4)
 
-@doc('Calculate novelty (Expected Free Discovery -EFD-) as the expected Inverse Collection Frequency -ICF- of (relevant and seen) recommended items')
+
+@metric('Calculate novelty (Expected Free Discovery -EFD-) as the expected Inverse Collection Frequency -ICF- of (relevant and seen) recommended items')
 def novelty(object, anonymous=False):
     """
     Calculate novelty (Expected Free Discovery -EFD-) as 
@@ -469,7 +486,7 @@ def novelty(object, anonymous=False):
     # average value (not in elliot)
     return round(sum(d_user.values())/len(users),4)
 
-@doc('The diversity of the recommendations according to GiniIndex. The index is 0 when all items are chosen equally often, and 1 when a single item is always chosen.(see book https://link.springer.com/10.1007/978-1-4939-7131-2_110158)')
+@metric('The diversity of the recommendations according to GiniIndex. The index is 0 when all items are chosen equally often, and 1 when a single item is always chosen.(see book https://link.springer.com/10.1007/978-1-4939-7131-2_110158)')
 def diversity_gini(object, anonymous=False):
     """
     Calculate GiniIndex based on https://elliot.readthedocs.io/en/latest/_modules/elliot/evaluation/metrics/diversity/gini_index/gini_index.html#GiniIndex.
@@ -487,20 +504,6 @@ def diversity_gini(object, anonymous=False):
     # also since each recommendation entry is one-to-one <user id> <service id> 
     # then the total number of recommendations is equal to this sum
     free_norm=len(recs.index) 
-
-    # (remember that recommendations have been previously
-    # filtered based on the existance of users in user.csv and 
-    # services in services.csv)
-
-    # user_norm
-    # group recommendations entries by user id and 
-    # then count how many times each user has been suggested
-    #gr_user=recs.groupby(['User']).count()
-
-    # create a dictionary of user_norm in order to
-    # map the user id to the respective user_norm
-    # key=<user id> and value=<user_norm>
-    #d_user=gr_user['Service'].to_dict()
 
     # item_count
     # group recommendations entries by service id and 

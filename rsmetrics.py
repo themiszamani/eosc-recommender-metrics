@@ -112,25 +112,40 @@ run.recommendations = run.recommendations[run.recommendations['User'].isin(run.u
 run.recommendations = run.recommendations[run.recommendations['Service'].isin(run.services['Service'].tolist()+[-1])]
 
 
-md={'timestamp':str(datetime.utcnow())}
+output={'timestamp':str(datetime.utcnow())}
+metrics = []
+statistics = []
 
-# get all functions found in metrics module
-# apart from 'doc' func
-# run and save the result in dictionary
-# where key is the name of the function
-# and value what it returns
-# whereas, for each found functions
-# an extra key_doc element in dictionary is set
-# to save the text of the function
-funcs = list(map(lambda x: x[0], getmembers(m, isfunction)))
-funcs = list(filter(lambda x: not x=='doc',funcs))
-for func in funcs:
-    md[func+'_doc']=getattr(m, func).text
-    md[func]=getattr(m, func)(run)
+# get all function names in metrics module
+func_names = list(map(lambda x: x[0], getmembers(m, isfunction)))
+# keep all function names except decorators such as metric and statistic
+func_names = list(filter(lambda x: not ( x=='metric' or x=='statistic') ,func_names))
+for func_name in func_names:
+    # get function based on function name
+    func = getattr(m,func_name)
+    # if function has attribute kind (which means that evaluates a metric or a static)
+    if hasattr(func,"kind"):
+        kind = getattr(func,"kind")
+        # execute and get value
+        value= func(run)
+        documentation = ""
+        # if has documentation ge it
+        if hasattr(func,"doc"):
+            documentation = func.doc
+        # prepare json output object with function name, execution result and optional documentation
+        item = {'name':func_name, 'value':value, 'doc':documentation}
+        # if metric add it to the metrics list else to the statistics list
+        if kind == "metric":
+            metrics.append(item)
+        elif kind == "statistic":
+            statistics.append(item)
+
+# Add the two lists to the final output onject
+output['metrics'] = metrics
+output['statistics'] = statistics
 
 
-
-jsonstr = json.dumps(md,indent=4)
+jsonstr = json.dumps(output,indent=4)
 #jsonstr = json.dumps(m.__dict__)
 print(jsonstr)
 
