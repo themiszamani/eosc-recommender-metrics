@@ -59,10 +59,7 @@ def users(object):
     found in Pandas DataFrame object users (if provided)
     or user_actions otherwise
     """
-    if isinstance(object.users, pd.DataFrame):
-        return int(object.users['User'].nunique())
-    else:
-        return int(object.user_actions.nunique()['User'])
+    return int(object.users['User'].nunique())
 
 
 @statistic('The total number of unique services found in services.csv (if provided), otherwise in user_actions.csv')
@@ -72,10 +69,7 @@ def services(object):
     found in Pandas DataFrame object services (if provided)
     or user_actions otherwise (from both Source and Target Service)
     """
-    if isinstance(object.services, pd.DataFrame):
-        return int(object.services.nunique()['Service'])
-    else:
-        return len(np.unique(np.concatenate([object.user_actions['Source_Service'].unique(),object.user_actions['Target_Service'].unique()])))
+    return int(object.services['Service'].nunique())
 
 
 @statistic('The total number of recommendations found in recommendations.csv')
