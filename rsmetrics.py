@@ -46,9 +46,6 @@ optional.add_argument('-i', '--input', metavar=('FILEPATH'), help='override defa
 optional.add_argument('-s', '--starttime', metavar=('DATETIME'), help='calculate metrics starting from given datetime in ISO format (UTC) e.g. YYYY-MM-DD', nargs='?', default=None)
 optional.add_argument('-e', '--endtime', metavar=('DATETIME'), help='calculate metrics ending to given datetime in ISO format (UTC) e.g. YYYY-MM-DD', nargs='?', default=None)
 
-
-optional.add_argument('--services', help='enable reading total services from services.csv, otherwise it will be calculated according to the user actions', action='store_true', default=True)
-
 optional.add_argument('-h', '--help', action='help', help='show this help message and exit')
 optional.add_argument('-v', '--version', action='version', version='%(prog)s v'+__version__)
 
@@ -96,9 +93,7 @@ else:
 run.users=pd.read_csv(os.path.join(args.input,'users.csv'),names=["User","Services"],converters={'Services': lambda x: map(int,x.split())})
     
 # populate services
-if args.services:
-    run.services=pd.read_csv(os.path.join(args.input,'services.csv'),names=["Service"])
-
+run.services=pd.read_csv(os.path.join(args.input,'services.csv'),names=["Service"])
 
 # remove user actions when user or service does not exist in users' or services' catalogs
 # adding -1 in all catalogs indicating the anonynoums users or not-known services
