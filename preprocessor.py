@@ -253,13 +253,20 @@ if config['User']['export']:
 if config['Service']['export']:
 
     if config['Service']['from']=='page_map':
-        ss=natsorted(list(set(list(map(lambda x: x+'\n',values)))),alg=ns.ns.SIGNED)
+
+        _ss=natsorted(list(set(list(map(lambda x: x+'\n',values)))),alg=ns.ns.SIGNED)
+        ss=[]
+        for s in _ss:
+            try:
+                ss.append(s.strip()+','+recdb["service"].find({'_id':int(s)})[0]['rating']+'\n')
+            except:
+                continue
 
     else: # 'source'
         if config['Service']['published']:
-            ss=natsorted(list(set(list(map(lambda x: str(x['_id'])+'\n',recdb["service"].find({"status":"published"}))))),alg=ns.ns.SIGNED)
+            ss=natsorted(list(set(list(map(lambda x: str(x['_id'])+','+str(x['rating'])+'\n',recdb["service"].find({"status":"published"}))))),alg=ns.ns.SIGNED)
         else:
-            ss=natsorted(list(set(list(map(lambda x: str(x['_id'])+'\n',recdb["service"].find({}))))),alg=ns.ns.SIGNED)
+            ss=natsorted(list(set(list(map(lambda x: str(x['_id'])+','+str(x['rating'])+'\n',recdb["service"].find({}))))),alg=ns.ns.SIGNED)
 
     with open(os.path.join(args.output,'services.csv'), 'w') as o:
         o.writelines(ss)
