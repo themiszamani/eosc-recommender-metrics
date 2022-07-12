@@ -50,7 +50,7 @@ def get_service_catalog_items(content):
     for item in results:
         a = item.findChildren("a", recursive=False)[0]
         row = [int(item.attrs["data-service-id"]),
-               item.text.strip(), a['href']]
+               a.text.strip(), a['href']]
         rows.append(row)
     # sort rows by id
     rows = sorted(rows, key=lambda x: x[0])
