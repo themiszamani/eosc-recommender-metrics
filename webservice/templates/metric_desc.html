@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta http-equiv="Content-Language" content="en">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Diversity - Shannon Entropy - The diversity of the recommendations according to GiniIndex. The index is 0
+        when all items are chosen equally often, and 1 when a single item is always chosen.</title>
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, shrink-to-fit=no" />
+    <meta name="description"
+        content="The diversity of the recommendations according to GiniIndex. The index is 0 when all items are chosen equally often, and 1 when a single item is always chosen.">
+    <meta name="msapplication-tap-highlight" content="no">
+    <script defer src="/static/assets/scripts/main.js"></script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=default'></script>
+
+    <style>
+        ul.timeline {
+            list-style-type: none;
+            position: relative;
+        }
+
+        ul.timeline:before {
+            content: ' ';
+            background: #d4d9df;
+            display: inline-block;
+            position: absolute;
+            left: 29px;
+            width: 2px;
+            height: 100%;
+            z-index: 400;
+        }
+
+        ul.timeline>li {
+            margin: 20px 0;
+            padding-left: 20px;
+        }
+
+        ul.timeline>li:before {
+            content: ' ';
+            background: white;
+            display: inline-block;
+            position: absolute;
+            border-radius: 50%;
+            border: 3px solid #22c0e8;
+            left: 20px;
+            width: 20px;
+            height: 20px;
+            z-index: 400;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-container app-theme-white body-tabs-shadow fixed-sidebar fixed-header">
+        <div class="app-header header-shadow bg-focus header-text-dark">
+            <div class="app-header__logo">
+                <div class="logo-src"></div>
+                <div class="header__pane ms-auto">
+                    <div>
+                        <button type="button" class="hamburger close-sidebar-btn hamburger--elastic"
+                            data-class="closed-sidebar">
+                            <span class="hamburger-box">
+                                <span class="hamburger-inner"></span>
+                            </span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="app-header__mobile-menu">
+                <div>
+                    <button type="button" class="hamburger hamburger--elastic mobile-toggle-nav">
+                        <span class="hamburger-box">
+                            <span class="hamburger-inner"></span>
+                        </span>
+                    </button>
+                </div>
+            </div>
+            <div class="app-header__menu">
+                <span>
+                    <button type="button"
+                        class="btn-icon btn-icon-only btn btn-primary btn-sm mobile-toggle-header-nav">
+                        <span class="btn-icon-wrapper">
+                            <i class="fa fa-ellipsis-v fa-w-6"></i>
+                        </span>
+                    </button>
+                </span>
+            </div>
+            <div class="app-header__content">
+                <div class="app-header-left">
+                </div>
+            </div>
+        </div>
+        <div class="app-main">
+            <!--- SIDEBAR -->
+            <div class="app-sidebar sidebar-shadow">
+                <div class="app-header__logo">
+                    <div class="logo-src"></div>
+                    <div class="header__pane ms-auto">
+                        <div>
+                            <button type="button" class="hamburger close-sidebar-btn hamburger--elastic"
+                                data-class="closed-sidebar">
+                                <span class="hamburger-box">
+                                    <span class="hamburger-inner"></span>
+                                </span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="app-header__mobile-menu">
+                    <div>
+                        <button type="button" class="hamburger hamburger--elastic mobile-toggle-nav">
+                            <span class="hamburger-box">
+                                <span class="hamburger-inner"></span>
+                            </span>
+                        </button>
+                    </div>
+                </div>
+                <div class="app-header__menu">
+                    <span>
+                        <button type="button"
+                            class="btn-icon btn-icon-only btn btn-primary btn-sm mobile-toggle-header-nav">
+                            <span class="btn-icon-wrapper">
+                                <i class="fa fa-ellipsis-v fa-w-6"></i>
+                            </span>
+                        </button>
+                    </span>
+                </div>
+                <div class="scrollbar-sidebar">
+                    <div class="app-sidebar__inner">
+                        <ul class="vertical-nav-menu">
+                            <li class="app-sidebar__heading">Metric Dashboard</li>
+                            <li>
+                                <a href="#" class="mm-active">
+                                    <i class="metismenu-icon pe-7s-rocket"></i>
+                                    RS Metrics
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#">
+                                    <i class="metismenu-icon pe-7s-diamond"></i>
+                                    KPI List
+                                </a>
+                            </li>
+                            <li class="app-sidebar__heading">Metrics Documentation</li>
+                            <li>
+                                <a href="#">
+                                    <i class="metismenu-icon pe-7s-diamond"></i>
+                                    Diversity - Shannon Entropy
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <!--- SIDEBAR ENDS-->
+            <div class="app-main__outer">
+                <div class="app-main__inner">
+                    <div class="app-page-title">
+                        <div class="page-title-wrapper">
+                            <div class="page-title-heading">
+                                <div class="page-title-icon">
+                                    <i class="pe-7s-way icon-gradient bg-sunny-morning">
+                                    </i>
+                                </div>
+                                <div> {{data.name}}
+                                    <div class="page-title-subheading"> {{data.summary}}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-2 me-2 badge bg-warning">metric</div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="main-card mb-3 card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Description</h5>
+                                    <p> {{data.description}}
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="main-card mb-3 card">
+                                <div class="card-header-tab card-header">
+                                    <div class="card-header-title">
+                                        <i class="header-icon lnr-bicycle icon-gradient bg-love-kiss"></i>
+                                    </div>
+                                    <ul class="nav">
+                                        <li class="nav-item"><a data-bs-toggle="tab" href="#tab-eg5-0"
+                                                class="nav-link active">Output</a></li>
+                                        <li class="nav-item"><a data-bs-toggle="tab" href="#tab-eg5-1"
+                                                class="nav-link">Prerequisites</a></li>
+                                    </ul>
+                                </div>
+                                <div class="card-body">
+                                    <div class="tab-content">
+                                        <div class="tab-pane active" id="tab-eg5-0" role="tabpanel">
+                                            <p>
+                                            <div class="col-md-4">
+                                                <div class="mb-4 me-4">
+                                                    <span class="card-title">Type</span>&nbsp;&nbsp;<span
+                                                        class="badge bg-warning">{{data.output.type}}</span>
+                                                </div>
+                                            </div>
+                                            <h5 class="card-title">Range Values</h5>
+                                            <div class="text-center">Min={{data.output.min}} to Max={{data.output.max}}
+                                            </div>
+                                            <div class="mb-3 progress">
+                                                <div class="progress-bar bg-success" role="progressbar"
+                                                    aria-valuenow="15" aria-valuemin="0" aria-valuemax="55"
+                                                    style="width: 50%;"></div>
+                                                <div class="progress-bar bg-warning" role="progressbar"
+                                                    aria-valuenow="10" aria-valuemin="0" aria-valuemax="55"
+                                                    style="width: 50%;"></div>
+                                            </div>
+                                            <div><i>{{data.output.comment}}</i></div>
+                                            </p>
+                                        </div>
+                                        <div class="tab-pane" id="tab-eg5-1" role="tabpanel">
+
+
+
+
+
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="main-card mb-3 card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Process</h5>
+                                    <p>
+                                    <ul class="timeline">
+                                        {%for item in data.process %}
+                                        <li>
+                                            <a target="_blank" href="#">{{item.step}}</a>
+                                            <a href="#" class="float-right"></a>
+                                            <p>{{item.details}}</p>
+                                        </li>
+                                        {%endfor%}
+                                    </ul>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div> <!-- row -->
+                </div> <!-- inner -->
+                <div class="app-wrapper-footer">
+                    <div class="app-footer">
+                        <div class="app-footer__inner">
+                            <div class="app-footer-left">
+                                <ul class="nav">
+                                    <li class="nav-item">Copyright &copy;
+                                        <script
+                                            type="text/javascript"> document.write(new Date().getFullYear()); </script>
+                                        <a href="javascript:void(0);">
+                                            National Infrastructures for Research and Technology (GRNET) S. A.
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div> <!-- outer -->
+        </div>
+    </div>
+</body>
+
+</html>
