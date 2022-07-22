@@ -154,7 +154,7 @@ keys=list(map(lambda x: remove_service_prefix(x.split(',')[2]).strip(), lines))
 values=list(map(lambda x: x.split(',')[0].strip(), lines))
 
 dmap=dict(zip(keys, values))  #=> {'a': 1, 'b': 2}
-
+rdmap = {y: x for x, y in dmap.items()} # reverse dictionary
 
 # reward_mapping.py is modified so that the function
 # reads the Transition rewards csv file once
@@ -258,15 +258,22 @@ if config['Service']['export']:
         ss=[]
         for s in _ss:
             try:
-                ss.append(s.strip()+','+recdb["service"].find({'_id':int(s)})[0]['rating']+'\n')
+                ss.append(s.strip()+','+recdb["service"].find({'_id':int(s)})[0]['rating']+',"'+recdb["service"].find({'_id':int(s)})[0]['name']+'",'+rdmap[s.strip()]+'\n')
             except:
                 continue
 
     else: # 'source'
+        _query=""
         if config['Service']['published']:
-            ss=natsorted(list(set(list(map(lambda x: str(x['_id'])+','+str(x['rating'])+'\n',recdb["service"].find({"status":"published"}))))),alg=ns.ns.SIGNED)
-        else:
-            ss=natsorted(list(set(list(map(lambda x: str(x['_id'])+','+str(x['rating'])+'\n',recdb["service"].find({}))))),alg=ns.ns.SIGNED)
+            _query={"status":"published"}
+ 
+        _ss=natsorted(list(set(list(map(lambda x: str(x['_id'])+','+str(x['rating'])+',"'+str(x['name'])+'"\n',recdb["service"].find(_query))))),alg=ns.ns.SIGNED)
+        ss=[]
+        for s in _ss:
+            try:
+                ss.append(s.strip()+','+rdmap[s.split(',')[0]]+'\n')
+            except:
+                continue
 
     with open(os.path.join(args.output,'services.csv'), 'w') as o:
         o.writelines(ss)
