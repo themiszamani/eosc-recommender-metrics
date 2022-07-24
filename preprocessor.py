@@ -150,7 +150,7 @@ if config['Service']['download']:
 with open(os.path.join(args.output,config['Service']['path']), 'r') as f:
     lines=f.readlines()
 
-keys=list(map(lambda x: remove_service_prefix(x.split(',')[2]).strip(), lines))
+keys=list(map(lambda x: remove_service_prefix(x.split(',')[-1]).strip(), lines))
 values=list(map(lambda x: x.split(',')[0].strip(), lines))
 
 dmap=dict(zip(keys, values))  #=> {'a': 1, 'b': 2}
