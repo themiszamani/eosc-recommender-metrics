@@ -1,0 +1,45 @@
+name: Diversity Shannon Entropy
+
+summary: > 
+    Measures Recommendations' diversity. The entropy is 0 when a single item is always chosen or recommended, 
+    and log n when n items are chosen or recommended equally often.
+
+description: > 
+    The diversity of the recommendations according to Shannon Entropy. The entropy is 0 when a single item 
+    is always chosen or recommended, and log n when n items are chosen or recommended equally often 
+    (see book \url{https://link.springer.com/10.1007/978-1-4939-7131-2_110158}). Initially, the Shannon Entropy (H) is defined as: 
+    $$H=-\sum_{i=1}^{n}p(i)\log_2 p(i) $$In RS Metrics the computation is determined by the following forumla: 
+    $$Diversity=-\frac{\sum_{i=1}^{services}weight(i)*log2\left(\frac{count(i)}{Recommendations}\right)}{Users}$$
+
+output:
+    type: float
+    min: 0
+    max: +Inf
+    comment: The entropy is 0 when a single item is always chosen or recommended, and log n when n items are chosen or recommended equally often.
+
+prerequisites:
+    - recommendations without anonymous users
+    - all available services
+
+process:
+    - step: Clean up
+      details: >
+        Recommendations clean up; entries removal where users or services are not found in "users" or "services" files accordingly
+    - step: Users Impact
+      details: >
+        Calculation of the impact of the users, by counting how many times each user u was suggested for all possible services
+    - step: Services Impact
+      details: >
+        Calculation of the impact of the services, by counting how many times each service i was suggested to all possible users: count(i)
+    - step: Combining users and services impact
+      details: >
+        Finding of the users where service i was suggested to and calculation of the weight of that service by 
+        computing the sum of the fraction of 1 to the count(u) of the associated users. Procedure is performed for all services"
+    - step: Partial Shannon Entropy computation
+      details: >
+        Calculation of the Shannon Entropy for each service by multiplying its weight with the log2 of the fraction 
+        of the count(i) to the total number of recommendations
+    - step: Overall Shannon Entropy computation
+      details: >
+        Computation of the overall value by summing all values from previous step and dividing them by the total 
+        number of users (found in recommendations)
