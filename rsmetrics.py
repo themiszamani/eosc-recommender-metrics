@@ -93,7 +93,7 @@ else:
 run.users=pd.read_csv(os.path.join(args.input,'users.csv'),names=["User","Services"],converters={'Services': lambda x: map(int,x.split())})
     
 # populate services
-run.services=pd.read_csv(os.path.join(args.input,'services.csv'),names=["Service", "Rating"])
+run.services=pd.read_csv(os.path.join(args.input,'services.csv'),names=["Service", "Rating", "Name", "Page"])
 
 # remove user actions when user or service does not exist in users' or services' catalogs
 # adding -1 in all catalogs indicating the anonynoums users or not-known services
