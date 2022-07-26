@@ -572,11 +572,15 @@ def top5_services_recommended(object, k=5, base='https://marketplace.eosc-portal
         #  (iv) total number of recommendations of the service
         #   (v) percentage of the (iv) to the total number of recommendations 
         #       expressed in %, with or without anonymous, based on the function's flag
-        topk_services.append([service[0], 
-                              str(_df_service['Name'].item()), 
-                              base+str(_df_service['Page'].item()), 
-                              service[1], 
-                              round(100*service[1]/len(recs.index),2)])
+        topk_services.append({"service_id": service[0], 
+                              "service_name": str(_df_service['Name'].item()), 
+                              "service_url": base+str(_df_service['Page'].item()), 
+                              "recommendations": {
+                                "value":service[1], 
+                                "percentage": round(100*service[1]/len(recs.index),2),
+                                "of_total": len(recs.index)
+                                }
+                            })
 
     return topk_services
 
@@ -634,10 +638,13 @@ def top5_services_ordered(object, k=5, base='https://marketplace.eosc-portal.eu'
         #  (iv) total number of orders of the service
         #   (v) percentage of the (iv) to the total number of orders 
         #       expressed in %, with or without anonymous, based on the function's flag
-        topk_services.append([service[0], 
-                              str(_df_service['Name'].item()), 
-                              base+str(_df_service['Page'].item()), 
-                              service[1], 
-                              round(100*service[1]/len(uas.index),2)])
+        topk_services.append({"service_id":service[0], 
+                             "service_name": str(_df_service['Name'].item()), 
+                             "service_url": base+str(_df_service['Page'].item()), 
+                             "orders": {
+                                "value": service[1], 
+                                "percentage": round(100*service[1]/len(uas.index),2),
+                                "of_total": len(uas.index)
+                            }})
 
     return topk_services
