@@ -520,4 +520,63 @@ def diversity_gini(object, anonymous=False):
 
     return round(gini,4)
 
+@metric('The Top 5 recommended services according to recommendations entries')
+def top5_services_recommended(object, k=5, base='https://marketplace.eosc-portal.eu', anonymous=False):
+    """
+    Calculate the Top 5 recommended service according to the recommendations entries.
+    Return a list of list with the elements:
+        #   (i) service id
+        #  (ii) service name
+        # (iii) service page appended with base (to create the URL)
+        #  (iv) total number of recommendations of the service
+        #   (v) percentage of the (iv) to the total number of recommendations 
+        #       expressed in %, with or without anonymous, based on the function's flag
+    Service's info is being retrieved from the servives.csv file 
+    (i.e. each line forms: service_id, rating, service_name, page_id)
+    """
+    # keep recommendations with or without anonymous suggestions
+    # based on anonymous flag (default=False, i.e. ignore anonymous)
+    if anonymous:
+        recs=object.recommendations
+    else:
+        recs=object.recommendations[(object.recommendations['User'] != -1)]
+
+    # item_count
+    # group recommendations entries by service id and 
+    # then count how many times each service has been suggested
+    gr_service=recs.groupby(['Service']).count()
+
+    # create a dictionary of item_count in order to
+    # map the service id to the respective item_count
+    # key=<service id> and value=<item_count>
+    d_service=gr_service['User'].to_dict()
+
+    # convert dictionary to double list (list of lists)
+    # where the sublist is <service_id> <item_count>
+    # and sort them from max to min <item_count>
+    l_service=list(map(lambda x: [x,d_service[x]],d_service))
+    l_service.sort(key = lambda x: x[1], reverse=True)
+
+    # get only the first k elements
+    l_service=l_service[:k]
+
+    topk_services=[]
+
+    for service in l_service:
+        # get service's info from dataframe
+        _df_service=object.services[object.services['Service'].isin([service[0]])]
+        # append a list with the elements:
+        #   (i) service id
+        #  (ii) service name
+        # (iii) service page appended with base (to create the URL)
+        #  (iv) total number of recommendations of the service
+        #   (v) percentage of the (iv) to the total number of recommendations 
+        #       expressed in %, with or without anonymous, based on the function's flag
+        topk_services.append([service[0], 
+                              str(_df_service['Name'].item()), 
+                              base+str(_df_service['Page'].item()), 
+                              service[1], 
+                              round(100*service[1]/len(recs.index),2)])
+
+    return topk_services
 
