@@ -28,8 +28,8 @@ process:
         Calculation of the impact of the services, by counting how many times each service i was suggested to all possible users: count(i)
     - step: Sort Services Impact from low to high
       details: >
-        Sort the number of how many time each service i was suggested from the lower to the higher value, in order to apply the respective weight (i)
-    - step: Calculate the opossite of the Gini index computation
+        Sort the number of how many times each service (i.e. i) was suggested from the lower to the higher value, in order to apply the respective weight (i)
+    - step: Calculate the opposite of the Gini index computation
       details: >
         Calculation of the opposite of the Gini Index (1-G) by applying the suggested formula
     - step: Calculate Gini Index and normalize it
