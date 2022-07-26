@@ -7,7 +7,7 @@ description: >
     The diversity of the recommendations according to Gini Index. The index is 0 when all items are chosen equally often, 
     and 1 when a single item is always chosen (see book \url{https://link.springer.com/10.1007/978-1-4939-7131-2_110158}). Initially, the Gini Index (H) is defined as: 
     $$G=\frac{1}{n-1}\sum_{j=1}^{n}(2j-n-1)p(i_j)$$where $$i_1,\ldots,i_n$$ is the list of items ordered according to increasing $$p(i)$$ and each item $$i$$ accounts for a proportion $$p(i)$$ of user recommendations. In RS Metrics the computation is determined by the following forumla: 
-    $$$$G=1-\frac{\sum_{i=0}^{rec\_services}[2(i+1+services-rec\_services)-services-1]\frac{count(i)}{recommendations}}{services-1}$$$$, where $$count(i)$$ indicates how many times service $$i$$ has been recommended.
+    $$G=1-\frac{\sum_{i=0}^{rec\_services}[2(i+1+services-rec\_services)-services-1]\frac{count(i)}{recommendations}}{services-1}$$, where $$count(i)$$ indicates how many times service $$i$$ has been recommended.
 
 output:
     type: float
