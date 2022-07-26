@@ -580,3 +580,64 @@ def top5_services_recommended(object, k=5, base='https://marketplace.eosc-portal
 
     return topk_services
 
+@metric('The Top 5 ordered services according to user actions entries')
+def top5_services_ordered(object, k=5, base='https://marketplace.eosc-portal.eu', anonymous=False):
+    """
+    Calculate the Top 5 ordered services according to user actions entries.
+    User actions with Target Pages that lead to unknown services (=-1) are being ignored.
+    Return a list of list with the elements:
+        #   (i) service id
+        #  (ii) service name
+        # (iii) service page appended with base (to create the URL)
+        #  (iv) total number of orders of the service
+        #   (v) percentage of the (iv) to the total number of orders 
+        #       expressed in %, with or without anonymous, based on the function's flag
+    Service's info is being retrieved from the services.csv file 
+    (i.e. each line forms: service_id, rating, service_name, page_id)
+    """
+    # keep user actions with or without anonymous suggestions
+    # based on anonymous flag (default=False, i.e. ignore anonymous)
+    # user_actions with Target Pages that lead to unknown services (=-1) are being ignored
+    if anonymous:
+        uas=object.user_actions[(object.user_actions['Reward'] == 1.0) & (object.user_actions['Target_Service'] != -1)  & (object.user_actions['User'] != -1)]
+    else:
+        uas=object.user_actions[(object.user_actions['Reward'] == 1.0) & (object.user_actions['Target_Service'] != -1)]
+
+    # item_count
+    # group user_actions entries by service id and 
+    # then count how many times each service has been suggested
+    gr_service=uas.groupby(['Target_Service']).count()
+
+    # create a dictionary of item_count in order to
+    # map the service id to the respective item_count
+    # key=<service id> and value=<item_count>
+    d_service=gr_service['User'].to_dict()
+
+    # convert dictionary to double list (list of lists)
+    # where the sublist is <service_id> <item_count>
+    # and sort them from max to min <item_count>
+    l_service=list(map(lambda x: [x,d_service[x]],d_service))
+    l_service.sort(key = lambda x: x[1], reverse=True)
+
+    # get only the first k elements
+    l_service=l_service[:k]
+
+    topk_services=[]
+
+    for service in l_service:
+        # get service's info from dataframe
+        _df_service=object.services[object.services['Service'].isin([service[0]])]
+        # append a list with the elements:
+        #   (i) service id
+        #  (ii) service name
+        # (iii) service page appended with base (to create the URL)
+        #  (iv) total number of orders of the service
+        #   (v) percentage of the (iv) to the total number of orders 
+        #       expressed in %, with or without anonymous, based on the function's flag
+        topk_services.append([service[0], 
+                              str(_df_service['Name'].item()), 
+                              base+str(_df_service['Page'].item()), 
+                              service[1], 
+                              round(100*service[1]/len(uas.index),2)])
+
+    return topk_services
