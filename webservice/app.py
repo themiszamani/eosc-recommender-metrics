@@ -35,6 +35,29 @@ def load_sidebar_info():
 
 app.sidebar_info = load_sidebar_info()
 
+def load_sidebar_info():
+  '''Reads the available metric description yaml files in metric description folder path
+  and creates dynamically a list of full names -> short names of metric descriptions
+  in order to create automatically the appropriate links in sidebar
+  '''
+  folder = app.config['RS_EVALUATION_METRIC_DESC']
+  desc = []
+  app.logger.info('Opening metric description folder %s to gather sidebar info...',folder)
+  try:
+    for filename in os.listdir(folder):
+      if filename.endswith(".yml"):
+        with open(os.path.join(folder,filename), 'r') as f:
+          app.logger.info('Opening metric description file %s',filename)
+          result = yaml.safe_load(f)
+          # Remove .yml suffix from filename
+          desc.append({'name':re.sub('\.yml$', '', filename), 'fullname': result['name']})
+          f.close()
+  except:
+    app.logger.error('Could not load sidebar info from metric description folder:%s',app.config['RS_EVALUATION_METRIC_DESC'])
+  return {'metric_descriptions':desc}
+
+app.sidebar_info = load_sidebar_info()
+
 @app.route("/")
 def html_main():
     '''Serve the main page that constructs the report view'''
