@@ -41,6 +41,21 @@ def html_main():
     # Render the report template and specifiy metric resource to be '/api' since the report is hosted in the webservice
     return render_template('./report.html.prototype',metric_source='/api')   
 
+@app.route("/kpis")
+def html_kpis():
+    '''Serve html page about kpis'''
+    # call directly the get_metrics flask method implemented in our api to get json about all metrics
+    result = {}
+    metrics_needed = ['hit_rate', 'click_through_rate', 'top5_services_ordered', 'top5_services_recommended']
+    for metric_name in metrics_needed:
+      result[metric_name] = get_metric(metric_name).get_json()
+
+    result['sidebar_info'] = app.sidebar_info
+    result['metric_active'] = None
+
+    return render_template('./kpis.html', data=result)
+
+
 @app.route("/descriptions/metrics/<string:metric_name>")
 def html_metric_description(metric_name):
     '''Serve html page about description of a specific metric'''
