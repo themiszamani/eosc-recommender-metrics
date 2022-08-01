@@ -1,0 +1,43 @@
+name: Novelty
+
+summary: > 
+    Calculating novelty (Expected Free Discovery -EFD-) as the expected Inverse Collection Frequency -ICF- of (relevant and seen) recommended items
+
+description: > 
+    Calculating novelty (Expected Free Discovery -EFD-) as the expected Inverse Collection Frequency -ICF- of (relevant and seen) recommended items.
+    Initially, the Novelty (EFD) is defined as: 
+    $$EFD=C\sum_{i_k \in \mathbb{R}}^{}disk(k)p(rel \mid i_k,u)(-\log_2 p(i \mid seen,\theta))$$where, \(disk(k)\) is a discount function, \(p(rel)\) is the probability of relevance, and the \(\log_{2}\) factor is a relative measure of how likely items are to be seen with respect to each other.
+    In RS Metrics the computation assumes that (i) recommendation items are equally weighted (rank=1), (ii) no extensive information is preserved if an item is liked, picked, enjoyed (relevance=1), (iii) user views all recommendation items together -without paging- (discount=1). See paper \(\href{https://dl.acm.org/doi/abs/10.1145/2043932.2043955}{https://dl.acm.org/doi/abs/10.1145/2043932.2043955}\). Thus, the computation is determined by the following formula: 
+    $$Novelty=\frac{\sum_{u}^{rec\_users}nov\_user(u)}{rec\_users}$$where, $$nov\_user(u)=\frac{\sum_{i}^{services(u)}novelty(i)}{recommendations(u)}$$and,
+    \[ novelty(i)= \begin{cases} -\log_2\left(\frac{count(i)}{recommendations}\right),& i \in services(u) \\ -\log_2\left(\frac{min\{count(j), \forall j \in services\}}{recommendations}\right), & i \notin services(u) \end{cases} \]
+
+
+
+
+output:
+    type: float
+    min: 0
+    max: +\(\infty\)
+    comment: Novelty of a user is 0 when a single item is always chosen or recommended, and \(n\log_2{n}\) when n items are chosen or recommended equally often.
+
+prerequisites:
+    - all available recommendations associated with registered users
+    - all available user actions associated with registered users
+
+process:
+    - step: Clean up
+      details: >
+        Recommendations and user actions clean up; entries removal where users or services are not found in "users" or "services" files accordingly
+    - step: Services Impact
+      details: >
+        Calculation of the impact of the services, by counting how many times each service (i.e. i) was suggested to all possible users: count(i)
+    - step: Calculate novelty of a service (i.e. novelty(i))
+      details: >
+        Calculation of the novelty of the service, by computing the logarithm of the division of how many times (i.e. count(i)) each service (i.e. i) was suggested by the number of recommendations
+    - step: Calculate novelty for a user (i.e. nov_user(u))
+      details: >
+        Calculation of the novelty occurred for each user, by summing up all services' novelty for all available services found in user actions and divided them by the number of recommendations made to the user. If a service is found in user actions but it has not been suggested to the user, then the novelty value is set to the minimum one computed in the dataset.
+    - step: Overall Novelty computation
+      details: >
+        Computation of the overall value by summing all values from previous step and dividing them by the total 
+        number of users (found in recommendations)
