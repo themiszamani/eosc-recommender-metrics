@@ -143,7 +143,7 @@
                         <ul class="vertical-nav-menu">
                             <li class="app-sidebar__heading">Metrics Dashboard</li>
                             <li>
-                                <a href="#" >
+                                <a href="/" >
                                     <i class="metismenu-icon pe-7s-rocket"></i>
                                     RS Metrics
                                 </a>
@@ -155,10 +155,10 @@
                                 </a>
                             </li>
                             <li class="app-sidebar__heading">Metrics Documentation</li>
-                            {%for item in data.sidebar_info.metric_descriptions %}
+                            {%for key, item in data.sidebar_info.metric_descriptions.items() %}
                             <li>
-                                <a href="/descriptions/metrics/{{item.name}}" {%if item.name == data.metric_active %} class="mm-active" {%endif%} >
-                                    <i class="metismenu-icon pe-7s-diamond"></i>
+                                <a href="/descriptions/metrics/{{key}}" {%if key == data.metric_active %} class="mm-active" {%endif%} >
+                                    <i class="metismenu-icon {{item.style.icon}}"></i>
                                     {{item.fullname}}
                                 </a>
                             </li>
@@ -173,7 +173,7 @@
                         <div class="page-title-wrapper">
                             <div class="page-title-heading">
                                 <div class="page-title-icon">
-                                    <i class="pe-7s-way icon-gradient bg-sunny-morning">
+                                    <i class="{{data.style.icon}} icon-gradient {{data.style.color}}">
                                     </i>
                                 </div>
                                 <div>{{data.name}}
@@ -197,8 +197,7 @@
                             <div class="main-card mb-3 card">
                                 <div class="card-header-tab card-header">
                                     <div class="card-header-title">
-                                        <i class="header-icon lnr-bicycle icon-gradient bg-love-kiss">
-                                        </i>
+                                     
 
                                     </div>
                                     <ul class="nav">
