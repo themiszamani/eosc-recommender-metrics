@@ -29,3 +29,8 @@ process:
     - step: Calculate ratio
       details: >
          Calculate the percentage (%) of the division of the unique users found in recommendations to the total number of users
+
+# This is optional for visual stylization of the metric when displayed on the report
+style:
+    icon: pe-7s-user
+    color: bg-grow-early
