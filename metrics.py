@@ -342,10 +342,10 @@ def click_through_rate(object):
     return round(len(user_actions_recpanel_clicks)/len(user_actions_recpanel_views),2)
 
 
-@metric('The diversity of the recommendations according to Shannon Entropy. The entropy is 0 when a single item is always chosen or recommended, and log n when n items are chosen or recommended equally often. (see book https://link.springer.com/10.1007/978-1-4939-7131-2_110158)')
+@metric('The diversity of the recommendations according to Shannon Entropy. The entropy is 0 when a single item is always chosen or recommended, and log n when n items are chosen or recommended equally often.')
 def diversity(object, anonymous=False):
     """
-    Calculate Shannon Entropy based on https://elliot.readthedocs.io/en/latest/guide/metrics/diversity.html?highlight=entropy#module-elliot.evaluation.metrics.diversity.shannon_entropy.shannon_entropy. The entropy is 0 when a single item is always chosen or recommended, and log n when n items are chosen or recommended equally often. See more in https://link.springer.com/content/pdf/10.1007/978-1-4899-7637-6.pdf, page 293.
+    Calculate Shannon Entropy based on https://elliot.readthedocs.io/en/latest/guide/metrics/diversity.html?highlight=entropy#module-elliot.evaluation.metrics.diversity.shannon_entropy.shannon_entropy. The entropy is 0 when a single item is always chosen or recommended, and log n when n items are chosen or recommended equally often. (see book https://link.springer.com/10.1007/978-1-4939-7131-2_110158) . See more in https://link.springer.com/content/pdf/10.1007/978-1-4899-7637-6.pdf, page 293.
     """
     # keep recommendations with or without anonymous suggestions
     # based on anonymous flag (default=False, i.e. ignore anonymous)
@@ -480,10 +480,10 @@ def novelty(object, anonymous=False):
     # average value (not in elliot)
     return round(sum(d_user.values())/len(users),4)
 
-@metric('The diversity of the recommendations according to GiniIndex. The index is 0 when all items are chosen equally often, and 1 when a single item is always chosen.(see book https://link.springer.com/10.1007/978-1-4939-7131-2_110158)')
+@metric('The diversity of the recommendations according to GiniIndex. The index is 0 when all items are chosen equally often, and 1 when a single item is always chosen.')
 def diversity_gini(object, anonymous=False):
     """
-    Calculate GiniIndex based on https://elliot.readthedocs.io/en/latest/_modules/elliot/evaluation/metrics/diversity/gini_index/gini_index.html#GiniIndex.
+    Calculate GiniIndex based on https://elliot.readthedocs.io/en/latest/_modules/elliot/evaluation/metrics/diversity/gini_index/gini_index.html#GiniIndex. (see book https://link.springer.com/10.1007/978-1-4939-7131-2_110158)
     """
     # keep recommendations with or without anonymous suggestions
     # based on anonymous flag (default=False, i.e. ignore anonymous)
