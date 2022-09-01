@@ -101,6 +101,10 @@
                     height: 20px;
                     z-index: 400;
                 }
+
+                .timeline-h {
+                    color: #3F6AD8;
+                }
             </style>
 
             <script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=default'></script>
@@ -264,8 +268,7 @@
                                     <ul class="timeline">
                                         {%for item in data.process %}
                                         <li>
-                                            <a target="_blank" href="#">{{item.step}}</a>
-                                            <a href="#" class="float-right"></a>
+                                            <span class="timeline-h">{{item.step}}</span>
                                             <p>{{item.details}}</p>
                                         </li>
                                         {%endfor%}

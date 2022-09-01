@@ -4,7 +4,7 @@ summary: >
     The percentage (%) of the division of the unique users found in recommendations to the total number of users
 
 description: > 
-   The User Coverage is described by the formula $$\frac{unique rec_users}{users}$$
+   The User Coverage is described by the formula $$\frac{unique\_rec\_users}{users}$$
 
 output:
     type: float
