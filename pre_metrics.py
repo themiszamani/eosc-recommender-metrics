@@ -66,50 +66,50 @@ def services(object):
         return object.recdb["service"].count_documents({})
 
 
-@doc('The total number of recommendations found in recommendations of the source')
-def recommendations(object):
+@doc('The total number of recommendation_actions found in recommendation_actions of the source')
+def recommendation_actions(object):
     """
-    Calculate the total number of recommendations
+    Calculate the total number of recommendation_actions
     found in source object
     """
     return object.recdb["recommendation"].count_documents(object.query)
 
-@doc('The total number of recommendations for registered users found in recommendations.csv')
-def recommendations_registered(object):
+@doc('The total number of recommendation_actions for registered users found in recommendation_actions.csv')
+def recommendation_actions_registered(object):
     """
-    Calculate the total number of recommendations for registered users
-    found in Pandas DataFrame object recommendations
+    Calculate the total number of recommendation_actions for registered users
+    found in Pandas DataFrame object recommendation_actions
     """
     return object.recdb["recommendation"].count_documents({**object.query,**{"user":{"$exists":True}}})
 
 
-@doc('The total number of recommendations for anonymous users found in recommendations.csv')
-def recommendations_anonymous(object):
+@doc('The total number of recommendation_actions for anonymous users found in recommendation_actions.csv')
+def recommendation_actions_anonymous(object):
     """
-    Calculate the total number of recommendations for anonymous users
-    found in Pandas DataFrame object recommendations
+    Calculate the total number of recommendation_actions for anonymous users
+    found in Pandas DataFrame object recommendation_actions
     """
-    return recommendations(object)-recommendations_registered(object)
+    return recommendation_actions(object)-recommendation_actions_registered(object)
 
 
-@doc('The percentage (%) of recommendations for registered users to the total recommendations')
-def recommendations_registered_perc(object):
+@doc('The percentage (%) of recommendation_actions for registered users to the total recommendation_actions')
+def recommendation_actions_registered_perc(object):
     """
-    Calculate the percentage (%) of recommendations occurred 
-    by registered users to the total recommendations
-    found in Pandas DataFrame object recommendations (in two decimals)
+    Calculate the percentage (%) of recommendation_actions occurred 
+    by registered users to the total recommendation_actions
+    found in Pandas DataFrame object recommendation_actions (in two decimals)
     """
-    return round(recommendations_registered(object)*100.0/recommendations(object),2)
+    return round(recommendation_actions_registered(object)*100.0/recommendation_actions(object),2)
 
 
-@doc('The percentage (%) of recommendations for anonymous users to the total recommendations')
-def recommendations_anonymous_perc(object):
+@doc('The percentage (%) of recommendation_actions for anonymous users to the total recommendation_actions')
+def recommendation_actions_anonymous_perc(object):
     """
-    Calculate the percentage (%) of recommendations occurred 
-    by anonymous users to the total recommendations
-    found in Pandas DataFrame object recommendations (in two decimals)
+    Calculate the percentage (%) of recommendation_actions occurred 
+    by anonymous users to the total recommendation_actions
+    found in Pandas DataFrame object recommendation_actions (in two decimals)
     """
-    return round(100.0-recommendations_registered_perc(object),2)
+    return round(100.0-recommendation_actions_registered_perc(object),2)
 
 
 @doc('The total number of user actions found in user actions of the source')
