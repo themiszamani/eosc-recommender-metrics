@@ -5,16 +5,16 @@ summary: >
     and log n when n items are chosen or recommended equally often.
 
 description: > 
-    The diversity of the recommendations according to Shannon Entropy. The entropy is 0 when a single item 
-    is always chosen or recommended, and log n when n items are chosen or recommended equally often 
-    (see book \url{https://link.springer.com/10.1007/978-1-4939-7131-2_110158}). Initially, the Shannon Entropy (H) is defined as: 
+    The diversity (\(H\)) of the recommendations according to Shannon Entropy. The entropy is 0 when a single item 
+    is always chosen or recommended, and log(n) when n items are chosen or recommended equally often 
+    (see book \(\href{https://link.springer.com/10.1007/978-1-4939-7131-2_110158}{https://link.springer.com/10.1007/978-1-4939-7131-2_110158}\)). Generally, the Shannon Entropy mathematical expression is defined as: 
     $$H=-\sum_{i=1}^{n}p(i)\log_2 p(i) $$In RS Metrics the computation is determined by the following forumla: 
-    $$Diversity=-\frac{\sum_{i=1}^{services}weight(i)*log2\left(\frac{count(i)}{Recommendations}\right)}{Users}$$
+    $$Diversity=-\sum_{i=1}^{services}\left(\frac{count(i)}{recommendations}\right)\log_2 \left(\frac{count(i)}{recommendations}\right)$$
 
 output:
     type: float
     min: 0
-    max: +Inf
+    max: +\(\infty\)
     comment: The entropy is 0 when a single item is always chosen or recommended, and log n when n items are chosen or recommended equally often.
 
 prerequisites:
@@ -25,24 +25,18 @@ process:
     - step: Clean up
       details: >
         Recommendations clean up; entries removal where users or services are not found in "users" or "services" files accordingly
-    - step: Users Impact
-      details: >
-        Calculation of the impact of the users, by counting how many times each user u was suggested for all possible services
     - step: Services Impact
       details: >
         Calculation of the impact of the services, by counting how many times each service i was suggested to all possible users: count(i)
-    - step: Combining users and services impact
+    - step: Recommended Probability of the Services
       details: >
-        Finding of the users where service i was suggested to and calculation of the weight of that service by 
-        computing the sum of the fraction of 1 to the count(u) of the associated users. Procedure is performed for all services"
-    - step: Partial Shannon Entropy computation
+        For each service calculate its recommended probability by dividing the number of service's occurrences found in the recommendations to the total number of recommendations
+    - step: Service-based product computation
       details: >
-        Calculation of the Shannon Entropy for each service by multiplying its weight with the log2 of the fraction 
-        of the count(i) to the total number of recommendations
-    - step: Overall Shannon Entropy computation
+        Calculation of the product of the recommended probability from previous step and the logarithmic value of it, for each service individually
+    - step: Shannon Entropy computation
       details: >
-        Computation of the overall value by summing all values from previous step and dividing them by the total 
-        number of users (found in recommendations)
+        Computation of the overall value by summing all values from previous step
 
 # This is optional for visual stylization of the metric when displayed on the report
 style:
