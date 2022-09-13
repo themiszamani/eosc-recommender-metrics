@@ -159,7 +159,7 @@
                                 </a>
                             </li>
                             <li class="app-sidebar__heading">Metrics Documentation</li>
-                            {%for key, item in data.sidebar_info.metric_descriptions.items() %}
+                            {%for key, item in data.sidebar_info.metric_descriptions.items() | sort %}
                             <li>
                                 <a href="/descriptions/metrics/{{key}}" {%if key == data.metric_active %} class="mm-active" {%endif%} >
                                     <i class="metismenu-icon {{item.style.icon}}"></i>
