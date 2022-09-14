@@ -500,14 +500,19 @@ def diversity_gini(object, anonymous=False):
     # key=<service id> and value=<item_count>
     d_service=gr_service['User'].to_dict()
 
-
+    # total number of recommended services
     n_recommended_items = len(d_service)
+
+    # total number of services
     num_items = services(object)
 
-    gini = sum([(2 * (j + 1 + num_items-n_recommended_items) -num_items -1) * (cs / free_norm) for j, cs in enumerate(sorted(d_service.values()))])
+    # create a zero list
+    # to calculate gini index including elements with 0 occurance
+    zeros=[0]*(num_items-n_recommended_items)
+
+    gini = sum([(2*(j + 1) -num_items -1) * (cs / free_norm) for j, cs in enumerate(zeros+sorted(d_service.values()))])
 
     gini /= (num_items - 1)
-    gini = 1 - gini
 
     return round(gini,4)
 
