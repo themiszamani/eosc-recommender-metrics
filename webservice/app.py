@@ -31,7 +31,6 @@ def load_sidebar_info():
           # Remove .yml suffix from filename
           name=re.sub('\.yml$', '', filename)
           desc[name]= { 'fullname': result['name'], 'style': result['style']}
-          f.close()
   except:
     app.logger.error('Could not load sidebar info from metric description folder:%s',app.config['RS_EVALUATION_METRIC_DESC'])
   return {'metric_descriptions':desc}
@@ -97,7 +96,6 @@ def html_metric_description(metric_name):
         result = yaml.safe_load(f)
         result['sidebar_info'] = app.sidebar_info
         result['metric_active'] = metric_name
-        f.close()
     except:
       abort(404)
 
@@ -112,7 +110,6 @@ def get_api_index():
 
     with open(app.config['RS_EVALUATION_METRICS_FILE'], 'r') as f:
       result = json.load(f)
-      f.close()
     return jsonify(result)
 
 
@@ -123,7 +120,6 @@ def get_metrics():
 
     with open(app.config['RS_EVALUATION_METRICS_FILE'], 'r') as f:
       result = json.load(f)
-      f.close()
     return jsonify(result['metrics'])
 
 @app.route("/api/metrics/<string:metric_name>")
@@ -133,7 +129,6 @@ def get_metric(metric_name):
 
     with open(app.config['RS_EVALUATION_METRICS_FILE'], 'r') as f:
       result = json.load(f)
-      f.close()
     
     for metric in result['metrics']:
       if metric['name'] == metric_name:
@@ -148,7 +143,6 @@ def get_statistics():
 
     with open(app.config['RS_EVALUATION_METRICS_FILE'], 'r') as f:
       result = json.load(f)
-      f.close()
     return jsonify(result['statistics'])
 
 @app.route("/api/statistics/<string:stat_name>")
@@ -158,7 +152,6 @@ def get_statistic(stat_name):
 
     with open(app.config['RS_EVALUATION_METRICS_FILE'], 'r') as f:
       result = json.load(f)
-      f.close()
     
     for stat in result['statistics']:
       if stat['name'] == stat_name:
