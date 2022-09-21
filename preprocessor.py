@@ -151,10 +151,11 @@ with open(os.path.join(args.output,config['Service']['path']), 'r') as f:
     lines=f.readlines()
 
 keys=list(map(lambda x: remove_service_prefix(x.split(',')[-1]).strip(), lines))
-values=list(map(lambda x: x.split(',')[0].strip(), lines))
+ids=list(map(lambda x: x.split(',')[0].strip(), lines))
+names=list(map(lambda x: x.split(',')[1].strip(), lines))
 
-dmap=dict(zip(keys, values))  #=> {'a': 1, 'b': 2}
-rdmap = {y: x for x, y in dmap.items()} # reverse dictionary
+dmap=dict(zip(keys, zip(ids,names)))  #=> {'a': 1, 'b': 2}
+rdmap=dict(zip(ids,zip(keys,names)))
 
 # reward_mapping.py is modified so that the function
 # reads the Transition rewards csv file once
@@ -182,13 +183,13 @@ for ua in recdb["user_action"].find(query).sort("user"):
     # if not set service id to -1
     try:
         _pageid="/"+"/".join(ua['source']['page_id'].split('/')[1:3])
-        source_service_id=dmap[_pageid]
+        source_service_id=dmap[_pageid][0]
     except:
         source_service_id=-1
 
     try:
         _pageid="/"+"/".join(ua['target']['page_id'].split('/')[1:3])
-        target_service_id=dmap[_pageid]
+        target_service_id=dmap[_pageid][0]
     except:
         target_service_id=-1
 
@@ -254,11 +255,11 @@ if config['Service']['export']:
 
     if config['Service']['from']=='page_map':
 
-        _ss=natsorted(list(set(list(map(lambda x: x+'\n',values)))),alg=ns.ns.SIGNED)
+        _ss=natsorted(list(set(list(map(lambda x: x+'\n',ids)))),alg=ns.ns.SIGNED)
         ss=[]
         for s in _ss:
             try:
-                ss.append(s.strip()+','+recdb["service"].find({'_id':int(s)})[0]['rating']+',"'+recdb["service"].find({'_id':int(s)})[0]['name']+'",'+rdmap[s.strip()]+'\n')
+                ss.append(s.strip()+',"'+rdmap[s.strip()][1]+'",'+rdmap[s.strip()][0]+'\n')
             except:
                 continue
 
@@ -267,7 +268,7 @@ if config['Service']['export']:
         if config['Service']['published']:
             _query={"status":"published"}
  
-        _ss=natsorted(list(set(list(map(lambda x: str(x['_id'])+','+str(x['rating'])+',"'+str(x['name'])+'"\n',recdb["service"].find(_query))))),alg=ns.ns.SIGNED)
+        _ss=natsorted(list(set(list(map(lambda x: str(x['_id'])+',"'+str(x['name'])+'"\n',recdb["service"].find(_query))))),alg=ns.ns.SIGNED)
         ss=[]
         for s in _ss:
             try:

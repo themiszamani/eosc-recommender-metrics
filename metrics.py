@@ -528,7 +528,7 @@ def top5_services_recommended(object, k=5, base='https://marketplace.eosc-portal
         #   (v) percentage of the (iv) to the total number of recommendations 
         #       expressed in %, with or without anonymous, based on the function's flag
     Service's info is being retrieved from the servives.csv file 
-    (i.e. each line forms: service_id, rating, service_name, page_id)
+    (i.e. each line forms: service_id, service_name, page_id)
     """
     # keep recommendations with or without anonymous suggestions
     # based on anonymous flag (default=False, i.e. ignore anonymous)
@@ -593,7 +593,7 @@ def top5_services_ordered(object, k=5, base='https://marketplace.eosc-portal.eu'
         #   (v) percentage of the (iv) to the total number of orders 
         #       expressed in %, with or without anonymous, based on the function's flag
     Service's info is being retrieved from the services.csv file 
-    (i.e. each line forms: service_id, rating, service_name, page_id)
+    (i.e. each line forms: service_id, service_name, page_id)
     """
     # keep user actions with or without anonymous suggestions
     # based on anonymous flag (default=False, i.e. ignore anonymous)
