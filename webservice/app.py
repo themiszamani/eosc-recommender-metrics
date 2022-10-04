@@ -37,11 +37,14 @@ def load_sidebar_info():
 
 app.sidebar_info = load_sidebar_info()
 
+@app.route("/", strict_slashes=False)
+def html_index():
+  '''Serve the main page that constructs the report view'''
+  return render_template('./index.html')   
 
-@app.route("/")
-def html_main():
-    '''Serve the main page that constructs the report view'''
-    # Render the main dashboard
+@app.route("/ui", strict_slashes=False)
+def html_metrics():
+    '''Serve the main metrics dashboard'''
     result = {}
     stats_needed = ['users', 'recommendations', 'services', 'user_actions', 
     'user_actions_registered', 'user_actions_registered_perc', 
@@ -62,7 +65,7 @@ def html_main():
     result['metric_active'] = None
     return render_template('./rsmetrics.html',data=result)   
 
-@app.route("/kpis")
+@app.route("/ui/kpis", strict_slashes=False)
 def html_kpis():
     '''Serve html page about kpis'''
     # call directly the get_metrics flask method implemented in our api to get json about all metrics
@@ -83,7 +86,7 @@ def html_kpis():
     return render_template('./kpis.html', data=result)
 
 
-@app.route("/descriptions/metrics/<string:metric_name>")
+@app.route("/ui/descriptions/metrics/<string:metric_name>", strict_slashes=False)
 def html_metric_description(metric_name):
     '''Serve html page about description of a specific metric'''
     result = {}
