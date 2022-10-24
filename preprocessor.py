@@ -360,18 +360,8 @@ if config['Metrics']:
 
     jsonstr = json.dumps(md)
 
-    db_funcs=[]
-    for func in funcs:
-        db_funcs.append({'name':func,
-                         'description':md[func+'_doc'],
-                         'value':md[func],
-                         'type': 'service', # currently, static
-                        })
-
-    # resources: index value is: id
-    rsmetrics_db["pre_metrics"].create_index([('name', pymongo.ASCENDING)], 
-                                   unique = True, background = True)
-    #rsmetrics_db["pre_metrics"].with_options(write_concern = WriteConcern(w = 0)).insert_many(db_funcs) #, upsert=True)
+    rsmetrics_db.drop_collection("pre_metrics")
+    rsmetrics_db["pre_metrics"].insert_one(md)
 
     print(jsonstr)
 
