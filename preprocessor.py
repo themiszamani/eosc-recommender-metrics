@@ -266,11 +266,11 @@ if config['Datastore']['export_CSV']:
 if config['Service']['from']=='page_map':
 
     _ss=natsorted(list(set(list(map(lambda x: x+'\n',ids)))),alg=ns.ns.SIGNED)
-    ss=[]
+    resources=[]
     for s in _ss:
         try:
             #ss.append(s.strip()+',"'+rdmap[s.strip()][1]+'",'+rdmap[s.strip()][0]+'\n')
-            ss.append({'id':s.strip(),
+            resources.append({'id':s.strip(),
                        'name':rdmap[s.strip()][1],
                        'path':rdmap[s.strip()][0],
                        'created_on': None,
@@ -288,11 +288,11 @@ else: # 'source'
         _query={"status":"published"}
  
     _ss=natsorted(list(set(list(map(lambda x: str(x['_id'])+',"'+str(x['name'])+'"\n',recdb["service"].find(_query))))),alg=ns.ns.SIGNED)
-    ss=[]
+    resources=[]
     for s in _ss:
         try:
             #ss.append(s.strip()+','+rdmap[s.split(',')[0]]+'\n')
-            ss.append({'id':s.split(',')[0],
+            resources.append({'id':s.split(',')[0],
                        'name':rdmap[s.split(',')[0]][1],
                        'path':rdmap[s.split(',')[0]][0],
                        'created_on': None,
@@ -308,7 +308,7 @@ else: # 'source'
 # export service catalog
 if config['Datastore']['export_CSV']:
     with open(os.path.join(args.output,'services.csv'), 'w') as o:
-        o.writelines(ss)
+        o.writelines(resources)
 
 
 # store data to Mongo DB
@@ -325,15 +325,13 @@ rsmetrics_db["user_actions"].insert_many(luas)
 rsmetrics_db["recommendations"].delete_many({"provider":'cyfronet', "ingestion":'batch'})
 rsmetrics_db["recommendations"].insert_many(recs)
 
-# users: index value is: id
-rsmetrics_db["users"].create_index([('id', pymongo.ASCENDING)], 
-                                   unique = True, background = True)
-#rsmetrics_db["users"].with_options(write_concern = WriteConcern(w = 0)).insert_many(users) #, upsert=True)
+_ids=list(map(lambda x: x['id'],users))
+rsmetrics_db["users"].delete_many({"id":{"$in": _ids}})
+rsmetrics_db["users"].insert_many(users)
 
-# resources: index value is: id
-rsmetrics_db["resources"].create_index([('id', pymongo.ASCENDING)], 
-                                   unique = True, background = True)
-#rsmetrics_db["resources"].with_options(write_concern = WriteConcern(w = 0)).insert_many(ss) #, upsert=True)
+_ids=list(map(lambda x: x['id'],resources))
+rsmetrics_db["resources"].delete_many({"id":{"$in": _ids}})
+rsmetrics_db["resources"].insert_many(resources)
 
 
 # calculate pre metrics
