@@ -3,7 +3,6 @@ import sys, argparse
 import json
 import yaml
 import pymongo
-from pymongo.write_concern import WriteConcern
 from datetime import datetime, timezone
 import os
 from natsort import natsorted
@@ -320,29 +319,21 @@ datastore = pymongo.MongoClient("mongodb://"+config["Datastore"]["MongoDB"]["hos
 # use db
 rsmetrics_db = datastore[config["Datastore"]["MongoDB"]["db"]]
 
-# create index for the collection and ingest the respective data
+rsmetrics_db["user_actions"].delete_many({"provider":'cyfronet', "ingestion":'batch'})
+rsmetrics_db["user_actions"].insert_many(luas)
 
-# user_actions: index value is: user_id and timestamp
-rsmetrics_db["user_actions"].create_index([('user_id', pymongo.ASCENDING), 
-                                           ('timestamp', pymongo.ASCENDING)], 
-                                          unique = True, background = True)
-rsmetrics_db["user_actions"].with_options(write_concern = WriteConcern(w = 0)).insert_many(luas) #, upsert=True) # ordered=False?
-
-# recommendations: index value is: user_id and timestamp
-rsmetrics_db["recommendations"].create_index([('user_id', pymongo.ASCENDING), 
-                                              ('timestamp', pymongo.ASCENDING)], 
-                                             unique = True, background = True)
-rsmetrics_db["recommendations"].with_options(write_concern = WriteConcern(w = 0)).insert_many(recs) #, upsert=True)
+rsmetrics_db["recommendations"].delete_many({"provider":'cyfronet', "ingestion":'batch'})
+rsmetrics_db["recommendations"].insert_many(recs)
 
 # users: index value is: id
 rsmetrics_db["users"].create_index([('id', pymongo.ASCENDING)], 
                                    unique = True, background = True)
-rsmetrics_db["users"].with_options(write_concern = WriteConcern(w = 0)).insert_many(users) #, upsert=True)
+#rsmetrics_db["users"].with_options(write_concern = WriteConcern(w = 0)).insert_many(users) #, upsert=True)
 
 # resources: index value is: id
 rsmetrics_db["resources"].create_index([('id', pymongo.ASCENDING)], 
                                    unique = True, background = True)
-rsmetrics_db["resources"].with_options(write_concern = WriteConcern(w = 0)).insert_many(ss) #, upsert=True)
+#rsmetrics_db["resources"].with_options(write_concern = WriteConcern(w = 0)).insert_many(ss) #, upsert=True)
 
 
 # calculate pre metrics
@@ -382,7 +373,7 @@ if config['Metrics']:
     # resources: index value is: id
     rsmetrics_db["pre_metrics"].create_index([('name', pymongo.ASCENDING)], 
                                    unique = True, background = True)
-    rsmetrics_db["pre_metrics"].with_options(write_concern = WriteConcern(w = 0)).insert_many(db_funcs) #, upsert=True)
+    #rsmetrics_db["pre_metrics"].with_options(write_concern = WriteConcern(w = 0)).insert_many(db_funcs) #, upsert=True)
 
     print(jsonstr)
 
