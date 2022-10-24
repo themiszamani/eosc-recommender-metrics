@@ -18,6 +18,22 @@ def doc(r):
 
 
 # Pre Metrics
+@doc('The type of the resource')
+def type(object):
+    """
+    The type of the resource, e.g. service
+    """
+    # currently
+    return "service"
+
+# Pre Metrics
+@doc('The provider of the resource')
+def provider(object):
+    """
+    The provider of the resource, e.g. cyfronet
+    """
+    # currently
+    return "cyfronet"
 
 
 @doc('The initial date where metrics are calculated on')
