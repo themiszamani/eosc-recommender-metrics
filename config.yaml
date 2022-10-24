@@ -5,24 +5,36 @@ Source:
         port: 27017
         db: recommender_dev
 
-User:
-    export: true
+# The database where the Preprocessor's
+# and RSmetrics data are stored
+Datastore:
+    MongoDB:
+        host: localhost
+        port: 27017
+        db: rsmetrics
+
+    export_CSV: false
 
 Service:
+    # Use the EOSC-Marketplace webpage
+    # to retrieve resources and 
+    # associate the page_id and the service_id
+    Portal:
+        download: true
+        path: ./page_map
+
     # if true it keeps only published, otherwise all
     # this has an effect in exporting when from is set to 'source' 
     # and also in metrics calculations where service is considered
     published: true
 
-    # Use the EOSC-Marketplace webpage
-    # to associate page_id and service_id
-    download: true
-    path: ./page_map
-
-    export: true
+    # which origin to use to retrieve Resources
+    # two options available:
+    # - 'source': use the Connector
+    # - 'page_map': use the EOSC Marketplace
     from: 'page_map' # or 'source'
 
-# Calculate source's metrics
+# Calculate source's metrics (pre-metrics)
 Metrics: true
 
 
