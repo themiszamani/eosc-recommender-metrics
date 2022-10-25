@@ -2,6 +2,7 @@
 import sys, argparse
 import json
 import yaml
+import pymongo
 from datetime import datetime, timezone
 import os
 import pandas as pd
@@ -40,7 +41,7 @@ parser._action_groups.pop()
 required = parser.add_argument_group('required arguments')
 optional = parser.add_argument_group('optional arguments')
 
-#optional.add_argument('-c', '--config', metavar=('FILEPATH'), help='override default configuration file (./config.yaml)', nargs='?', default='./config.yaml', type=str)
+optional.add_argument('-c', '--config', metavar=('FILEPATH'), help='override default configuration file (./config.yaml)', nargs='?', default='./config.yaml', type=str)
 optional.add_argument('-i', '--input', metavar=('FILEPATH'), help='override default output dir (./data)', nargs='?', default='./data', type=str)
 
 optional.add_argument('-s', '--starttime', metavar=('DATETIME'), help='calculate metrics starting from given datetime in ISO format (UTC) e.g. YYYY-MM-DD', nargs='?', default=None)
@@ -69,13 +70,32 @@ if args.starttime and args.endtime:
         print('End date must be older than start date')
         sys.exit(0)
 
+# read configuration file
+with open(args.config, 'r') as _f:
+    config=yaml.load(_f, Loader=yaml.FullLoader)
+
 # read data
-run.user_actions_all=pd.read_csv(os.path.join(args.input,'user_actions.csv'),names=["User", "Source_Service", "Target_Service", "Reward", "Action", "Timestamp", "Source_Page_ID", "Target_Page_ID"])
-run.recommendations=pd.read_csv(os.path.join(args.input,'recommendations.csv'),names=["User", "Service", "Rating", "Timestamp"])
+# connect to db server
+datastore = pymongo.MongoClient("mongodb://"+config["Datastore"]["MongoDB"]["host"]+":"+str(config["Datastore"]["MongoDB"]["port"])+"/", uuidRepresentation='pythonLegacy')
+
+# use db
+rsmetrics_db = datastore[config["Datastore"]["MongoDB"]["db"]]
+
+# first column (_id) ignored, where iloc is used
+run.user_actions_all=pd.DataFrame(list(rsmetrics_db["user_actions"].find())).iloc[:,1:]
+run.user_actions_all.columns=["User", "Source_Service", "Target_Service", "Reward", "Action", "Timestamp", "Source_Page_ID", "Target_Page_ID", "Type", "Provider", "Ingestion"]
+
+run.recommendations=pd.DataFrame(list(rsmetrics_db["recommendations"].aggregate([{"$unwind":"$resource_ids"}]))).iloc[:,1:]
+run.recommendations.columns=["User", "Service", "Timestamp", "Type", "Provider", "Ingestion"]
+
+run.users=pd.DataFrame(list(rsmetrics_db["users"].find())).iloc[:,1:]
+run.users.columns=["User", "Services", "Created_on", "Deleted_on", "Provider", "Ingestion"]
+
+run.services=pd.DataFrame(list(rsmetrics_db["resources"].find())).iloc[:,1:]
+run.services.columns=["Service", "Name", "Page", "Created_on", "Deleted_on", "Type", "Provider", "Ingestion"]
 
 # convert timestamp column to datetime object
 run.user_actions_all['Timestamp']= pd.to_datetime(run.user_actions_all['Timestamp'])
-
 
 run.recommendations['Timestamp']= pd.to_datetime(run.recommendations['Timestamp'])
 
@@ -87,13 +107,6 @@ if args.starttime:
 else:
     run.user_actions_all=run.user_actions_all[run.user_actions_all['Timestamp'] < args.endtime]
     run.recommendations=run.recommendations[run.recommendations['Timestamp'] < args.endtime]
-
-
-# users are populated with two columns: one includes user id and the other includes a list of accessed services
-run.users=pd.read_csv(os.path.join(args.input,'users.csv'),names=["User","Services"],converters={'Services': lambda x: map(int,x.split())})
-    
-# populate services
-run.services=pd.read_csv(os.path.join(args.input,'services.csv'),names=["Service", "Name", "Page"])
 
 # remove user actions when user or service does not exist in users' or services' catalogs
 # adding -1 in all catalogs indicating the anonynoums users or not-known services
