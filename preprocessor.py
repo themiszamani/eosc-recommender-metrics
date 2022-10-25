@@ -325,12 +325,10 @@ rsmetrics_db["user_actions"].insert_many(luas)
 rsmetrics_db["recommendations"].delete_many({"provider":'cyfronet', "ingestion":'batch'})
 rsmetrics_db["recommendations"].insert_many(recs)
 
-_ids=list(map(lambda x: x['id'],users))
-rsmetrics_db["users"].delete_many({"id":{"$in": _ids}})
+rsmetrics_db["users"].delete_many({"provider":'cyfronet', "ingestion":'batch'})
 rsmetrics_db["users"].insert_many(users)
 
-_ids=list(map(lambda x: x['id'],resources))
-rsmetrics_db["resources"].delete_many({"id":{"$in": _ids}})
+rsmetrics_db["resources"].delete_many({"provider":'cyfronet', "ingestion":'batch'})
 rsmetrics_db["resources"].insert_many(resources)
 
 
