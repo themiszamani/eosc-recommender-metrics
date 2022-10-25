@@ -13,8 +13,6 @@ Datastore:
         port: 27017
         db: rsmetrics
 
-    export_CSV: false
-
 Service:
     # Use the EOSC-Marketplace webpage
     # to retrieve resources and 
