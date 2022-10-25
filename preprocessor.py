@@ -133,8 +133,8 @@ recdb = myclient[config["Source"]["MongoDB"]["db"]]
 
 
 # automatically associate page ids to service ids
-if config['Service']['download']:
-    service_list_path = os.path.join(args.output,config['Service']['path'])
+if config['Service']['Portal']['download']:
+    service_list_path = os.path.join(args.output,config['Service']['Portal']['path'])
     eosc_url = get_eosc_marketplace_url()
     print(
         "Retrieving page: marketplace list of services... \nGrabbing url: {0}".format(eosc_url))
@@ -147,7 +147,7 @@ if config['Service']['download']:
 
 
 # read map file and save in dict
-with open(os.path.join(args.output,config['Service']['path']), 'r') as f:
+with open(os.path.join(args.output,config['Service']['Portal']['path']), 'r') as f:
     lines=f.readlines()
 
 keys=list(map(lambda x: remove_service_prefix(x.split(',')[-1]).strip(), lines))
@@ -171,7 +171,6 @@ transition_rewards_df = pd.read_csv(TRANSITION_REWARDS_CSV_PATH, index_col="sour
 luas=[]
 
 for ua in recdb["user_action"].find(query).sort("user"):
-
     # set -1 to anonymous users
     try:
         user=ua['user']
@@ -203,19 +202,23 @@ for ua in recdb["user_action"].find(query).sort("user"):
 
     reward=reward_mapping[symbolic_reward]
 
-    luas.append('{},{},{},{},{},{},{},{}\n'.format(user, 
-                                          source_service_id, 
-                                          target_service_id, 
-                                          reward, 
-                                          ua['source']['root']['type'], 
-                                          ua['timestamp'], 
-                                          ua['source']['page_id'], 
-                                          ua['target']['page_id']))
+    luas.append({'user_id':user,
+                 'source_resource_id':source_service_id, 
+                 'target_resource_id':target_service_id, 
+                 'reward':reward, 
+                 'panel':ua['source']['root']['type'], 
+                 'timestamp':ua['timestamp'], 
+                 'source_path':ua['source']['page_id'], 
+                 'target_path':ua['target']['page_id'],
+                 'type': 'service', # currently, static
+                 'provider': 'cyfronet', # currently, static
+                 'ingestion': 'batch', # currently, static 
+                })
 
 #luas=natsorted(luas,alg=ns.ns.SIGNED)
-
-with open(os.path.join(args.output,'user_actions.csv'), 'w') as o:
-    o.writelines(luas)
+if config['Datastore']['export_CSV']:
+    with open(os.path.join(args.output,'user_actions.csv'), 'w') as o:
+        o.writelines(luas)
 
 
 
@@ -227,63 +230,114 @@ for rec in recdb["recommendation"].find(query).sort("user"):
     except:
         user=-1
 
-    for service in rec['services']:
-        recs.append('{},{},{},{}\n'.format(user, service, '1', rec['timestamp']))
+    recs.append({'user_id':user,
+                 'resource_ids': rec['services'],
+                 'timestamp':rec['timestamp'], 
+                 'type': 'service', # currently, static
+                 'provider': 'cyfronet', # currently, static
+                 'ingestion': 'batch', # currently, static 
+                })
 
 #recs=natsorted(recs,alg=ns.ns.SIGNED)
+if config['Datastore']['export_CSV']:
+    with open(os.path.join(args.output,'recommendations.csv'), 'w') as o:
+        o.writelines(recs)
 
-with open(os.path.join(args.output,'recommendations.csv'), 'w') as o:
-    o.writelines(recs)
-
+# produce users csv with each user id along with the user's accessed services
+# query users from database for fields _id and accessed_services then create a list of rows
+# each rows contains two elements, first: user_id in string format and second: a space separated sorted list of accessed services 
+users = recdb['user'].find({},{'accessed_services':1})
+users = list(map(lambda x: {'id':str(x['_id']),
+                            'accessed_resources': sorted(set(x['accessed_services'])),
+                            'created_on': None,
+                            'deleted_on': None,
+                            'provider': 'cyfronet', # currently, static
+                            'ingestion': 'batch', # currently, static 
+                           }, users))
 
 # export user catalog
-if config['User']['export']:
-
-    # produce users csv with each user id along with the user's accessed services
-    # query users from database for fields _id and accessed_services then create a list of rows
-    # each rows contains two elements, first: user_id in string format and second: a space separated sorted list of accessed services 
-    users = recdb['user'].find({},{'accessed_services':1})
-    users = list(map(lambda x: [str(x['_id']), " ".join([str(service_id) for service_id in sorted(set(x['accessed_services']))])], users))
-
+if config['Datastore']['export_CSV']:
     # save the users list of rows to a csv file
     with open(os.path.join(args.output,'users.csv'), 'w') as f:
         writer = csv.writer(f)
         writer.writerows(users)
 
-# export service catalog
-if config['Service']['export']:
 
-    if config['Service']['from']=='page_map':
+if config['Service']['from']=='page_map':
 
-        _ss=natsorted(list(set(list(map(lambda x: x+'\n',ids)))),alg=ns.ns.SIGNED)
-        ss=[]
-        for s in _ss:
-            try:
-                ss.append(s.strip()+',"'+rdmap[s.strip()][1]+'",'+rdmap[s.strip()][0]+'\n')
-            except:
-                continue
+    _ss=natsorted(list(set(list(map(lambda x: x+'\n',ids)))),alg=ns.ns.SIGNED)
+    resources=[]
+    for s in _ss:
+        try:
+            #ss.append(s.strip()+',"'+rdmap[s.strip()][1]+'",'+rdmap[s.strip()][0]+'\n')
+            resources.append({'id':s.strip(),
+                       'name':rdmap[s.strip()][1],
+                       'path':rdmap[s.strip()][0],
+                       'created_on': None,
+                       'deleted_on': None,
+                       'type': 'service', # currently, static
+                       'provider': 'cyfronet', # currently, static
+                       'ingestion': 'batch', # currently, static
+                       })
+        except:
+            continue
 
-    else: # 'source'
-        _query=""
-        if config['Service']['published']:
-            _query={"status":"published"}
+else: # 'source'
+    _query=""
+    if config['Service']['published']:
+        _query={"status":"published"}
  
-        _ss=natsorted(list(set(list(map(lambda x: str(x['_id'])+',"'+str(x['name'])+'"\n',recdb["service"].find(_query))))),alg=ns.ns.SIGNED)
-        ss=[]
-        for s in _ss:
-            try:
-                ss.append(s.strip()+','+rdmap[s.split(',')[0]]+'\n')
-            except:
-                continue
+    _ss=natsorted(list(set(list(map(lambda x: str(x['_id'])+',"'+str(x['name'])+'"\n',recdb["service"].find(_query))))),alg=ns.ns.SIGNED)
+    resources=[]
+    for s in _ss:
+        try:
+            #ss.append(s.strip()+','+rdmap[s.split(',')[0]]+'\n')
+            resources.append({'id':s.split(',')[0],
+                       'name':rdmap[s.split(',')[0]][1],
+                       'path':rdmap[s.split(',')[0]][0],
+                       'created_on': None,
+                       'deleted_on': None,
+                       'type': 'service', # currently, static
+                       'provider': 'cyfronet', # currently, static
+                       'ingestion': 'batch', # currently, static
+                       })
 
+        except:
+            continue
+
+# export service catalog
+if config['Datastore']['export_CSV']:
     with open(os.path.join(args.output,'services.csv'), 'w') as o:
-        o.writelines(ss)
+        o.writelines(resources)
+
+
+# store data to Mongo DB
+
+# connect to db server
+datastore = pymongo.MongoClient("mongodb://"+config["Datastore"]["MongoDB"]["host"]+":"+str(config["Datastore"]["MongoDB"]["port"])+"/", uuidRepresentation='pythonLegacy')
+
+# use db
+rsmetrics_db = datastore[config["Datastore"]["MongoDB"]["db"]]
+
+rsmetrics_db["user_actions"].delete_many({"provider":'cyfronet', "ingestion":'batch'})
+rsmetrics_db["user_actions"].insert_many(luas)
+
+rsmetrics_db["recommendations"].delete_many({"provider":'cyfronet', "ingestion":'batch'})
+rsmetrics_db["recommendations"].insert_many(recs)
+
+_ids=list(map(lambda x: x['id'],users))
+rsmetrics_db["users"].delete_many({"id":{"$in": _ids}})
+rsmetrics_db["users"].insert_many(users)
+
+_ids=list(map(lambda x: x['id'],resources))
+rsmetrics_db["resources"].delete_many({"id":{"$in": _ids}})
+rsmetrics_db["resources"].insert_many(resources)
 
 
 # calculate pre metrics
 if config['Metrics']:
 
-    run=pm.Runtime()
+    run=pm.Runtime() 
     run.recdb=recdb
     run.query=query
     run.config=config
@@ -304,11 +358,14 @@ if config['Metrics']:
         md[func+'_doc']=getattr(pm, func).text
         md[func]=getattr(pm, func)(run)
 
-
     jsonstr = json.dumps(md)
+
+    rsmetrics_db.drop_collection("pre_metrics")
+    rsmetrics_db["pre_metrics"].insert_one(md)
 
     print(jsonstr)
 
-    # Using a JSON string
-    with open(os.path.join(args.output,'pre_metrics.json'), 'w') as outfile:
-        outfile.write(jsonstr)
+    if config['Datastore']['export_CSV']:
+        # Using a JSON string
+        with open(os.path.join(args.output,'pre_metrics.json'), 'w') as outfile:
+            outfile.write(jsonstr)
