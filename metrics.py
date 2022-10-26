@@ -31,6 +31,21 @@ def statistic(txt):
 
 # Metrics
 
+@statistic('The type of the resource')
+def type(object):
+    """
+    The type of the resource, e.g. service
+    """
+    # currently
+    return "service"
+
+@statistic('The provider of the resource')
+def provider(object):
+    """
+    The provider of the resource, e.g. cyfronet
+    """
+    # currently
+    return "cyfronet"
 
 @statistic('The initial date where metrics are calculated on')
 def start(object):

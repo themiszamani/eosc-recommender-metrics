@@ -152,11 +152,16 @@ for func_name in func_names:
 output['metrics'] = metrics
 output['statistics'] = statistics
 
-
+# this line is necessary in order to store the output to MongoDB
 jsonstr = json.dumps(output,indent=4)
-#jsonstr = json.dumps(m.__dict__)
+
+rsmetrics_db.drop_collection("metrics")
+rsmetrics_db["metrics"].insert_one(output)
+
 print(jsonstr)
 
 # Using a JSON string
-with open(os.path.join(args.input,'metrics.json'), 'w') as outfile:
-    outfile.write(jsonstr)
+# export service catalog
+if config['Datastore']['export_CSV']:
+    with open(os.path.join(args.input,'metrics.json'), 'w') as outfile:
+        outfile.write(jsonstr)
