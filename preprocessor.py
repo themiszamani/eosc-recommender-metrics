@@ -202,10 +202,10 @@ for ua in recdb["user_action"].find(query).sort("user"):
 
     reward=reward_mapping[symbolic_reward]
 
-    luas.append({'user_id':user,
-                 'source_resource_id':source_service_id, 
-                 'target_resource_id':target_service_id, 
-                 'reward':reward, 
+    luas.append({'user_id':int(user),
+                 'source_resource_id':int(source_service_id), 
+                 'target_resource_id':int(target_service_id), 
+                 'reward':float(reward), 
                  'panel':ua['source']['root']['type'], 
                  'timestamp':ua['timestamp'], 
                  'source_path':ua['source']['page_id'], 
@@ -230,7 +230,7 @@ for rec in recdb["recommendation"].find(query).sort("user"):
     except:
         user=-1
 
-    recs.append({'user_id':user,
+    recs.append({'user_id':int(user),
                  'resource_ids': rec['services'],
                  'timestamp':rec['timestamp'], 
                  'type': 'service', # currently, static
@@ -247,7 +247,7 @@ if config['Datastore']['export_CSV']:
 # query users from database for fields _id and accessed_services then create a list of rows
 # each rows contains two elements, first: user_id in string format and second: a space separated sorted list of accessed services 
 users = recdb['user'].find({},{'accessed_services':1})
-users = list(map(lambda x: {'id':str(x['_id']),
+users = list(map(lambda x: {'id':int(str(x['_id'])),
                             'accessed_resources': sorted(set(x['accessed_services'])),
                             'created_on': None,
                             'deleted_on': None,
@@ -270,7 +270,7 @@ if config['Service']['from']=='page_map':
     for s in _ss:
         try:
             #ss.append(s.strip()+',"'+rdmap[s.strip()][1]+'",'+rdmap[s.strip()][0]+'\n')
-            resources.append({'id':s.strip(),
+            resources.append({'id':int(s.strip()),
                        'name':rdmap[s.strip()][1],
                        'path':rdmap[s.strip()][0],
                        'created_on': None,
@@ -292,7 +292,7 @@ else: # 'source'
     for s in _ss:
         try:
             #ss.append(s.strip()+','+rdmap[s.split(',')[0]]+'\n')
-            resources.append({'id':s.split(',')[0],
+            resources.append({'id':int(s.split(',')[0]),
                        'name':rdmap[s.split(',')[0]][1],
                        'path':rdmap[s.split(',')[0]][0],
                        'created_on': None,
