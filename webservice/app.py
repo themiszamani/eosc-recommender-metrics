@@ -1,4 +1,5 @@
 from flask import Flask, render_template, jsonify, abort
+from flask_pymongo import PyMongo
 import json, os, re 
 from dotenv import load_dotenv
 import yaml
@@ -9,10 +10,9 @@ app = Flask('RS_EVALUATION')
 dotenv_path = os.path.join(app.instance_path, '.env')
 load_dotenv(dotenv_path)
 
-
-
-app.config['RS_EVALUATION_METRICS_FILE'] = os.environ.get('RS_EVALUATION_METRICS_FILE')
 app.config['RS_EVALUATION_METRIC_DESC_DIR'] = os.environ.get('RS_EVALUATION_METRIC_DESC_DIR')
+app.config["MONGO_URI"] = os.environ.get('RS_EVALUATION_MONGO_URI')
+mongo = PyMongo(app)
 
 def load_sidebar_info():
   '''Reads the available metric description yaml files in metric description folder path
@@ -36,6 +36,10 @@ def load_sidebar_info():
   return {'metric_descriptions':desc}
 
 app.sidebar_info = load_sidebar_info()
+
+def db_get_metrics():
+    '''Get evaluated metric results from mongodb'''
+    return mongo.db.metrics.find_one({},{"_id":0})
 
 @app.route("/", strict_slashes=False)
 def html_index():
@@ -106,32 +110,24 @@ def html_metric_description(metric_name):
 
 
 
+
 @app.route("/api")
 def get_api_index():
     '''Serve metrics and statistics as default api response'''
-    result = {}
-
-    with open(app.config['RS_EVALUATION_METRICS_FILE'], 'r') as f:
-      result = json.load(f)
+    result = db_get_metrics()
     return jsonify(result)
 
 
 @app.route("/api/metrics")
 def get_metrics():
     '''Serve the metrics data in json format'''
-    result = {}
-
-    with open(app.config['RS_EVALUATION_METRICS_FILE'], 'r') as f:
-      result = json.load(f)
+    result = db_get_metrics()
     return jsonify(result['metrics'])
 
 @app.route("/api/metrics/<string:metric_name>")
 def get_metric(metric_name):
     '''Serve specific metric data in json format'''
-    result = {}
-
-    with open(app.config['RS_EVALUATION_METRICS_FILE'], 'r') as f:
-      result = json.load(f)
+    result = db_get_metrics()
     
     for metric in result['metrics']:
       if metric['name'] == metric_name:
@@ -142,19 +138,13 @@ def get_metric(metric_name):
 @app.route("/api/statistics")
 def get_statistics():
     '''Serve the statistics data in json format'''
-    result = {}
-
-    with open(app.config['RS_EVALUATION_METRICS_FILE'], 'r') as f:
-      result = json.load(f)
+    result = db_get_metrics()
     return jsonify(result['statistics'])
 
 @app.route("/api/statistics/<string:stat_name>")
 def get_statistic(stat_name):
     '''Serve specific statistic data in json format'''
-    result = {}
-
-    with open(app.config['RS_EVALUATION_METRICS_FILE'], 'r') as f:
-      result = json.load(f)
+    result = db_get_metrics()
     
     for stat in result['statistics']:
       if stat['name'] == stat_name:
