@@ -216,11 +216,6 @@ for ua in recdb["user_action"].find(query).sort("user"):
                 })
 
 #luas=natsorted(luas,alg=ns.ns.SIGNED)
-if config['Datastore']['export_CSV']:
-    with open(os.path.join(args.output,'user_actions.csv'), 'w') as o:
-        o.writelines(luas)
-
-
 
 recs=[]
 for rec in recdb["recommendation"].find(query).sort("user"):
@@ -239,9 +234,6 @@ for rec in recdb["recommendation"].find(query).sort("user"):
                 })
 
 #recs=natsorted(recs,alg=ns.ns.SIGNED)
-if config['Datastore']['export_CSV']:
-    with open(os.path.join(args.output,'recommendations.csv'), 'w') as o:
-        o.writelines(recs)
 
 # produce users csv with each user id along with the user's accessed services
 # query users from database for fields _id and accessed_services then create a list of rows
@@ -254,14 +246,6 @@ users = list(map(lambda x: {'id':int(str(x['_id'])),
                             'provider': 'cyfronet', # currently, static
                             'ingestion': 'batch', # currently, static 
                            }, users))
-
-# export user catalog
-if config['Datastore']['export_CSV']:
-    # save the users list of rows to a csv file
-    with open(os.path.join(args.output,'users.csv'), 'w') as f:
-        writer = csv.writer(f)
-        writer.writerows(users)
-
 
 if config['Service']['from']=='page_map':
 
@@ -304,12 +288,6 @@ else: # 'source'
 
         except:
             continue
-
-# export service catalog
-if config['Datastore']['export_CSV']:
-    with open(os.path.join(args.output,'services.csv'), 'w') as o:
-        o.writelines(resources)
-
 
 # store data to Mongo DB
 
@@ -363,7 +341,3 @@ if config['Metrics']:
 
     print(jsonstr)
 
-    if config['Datastore']['export_CSV']:
-        # Using a JSON string
-        with open(os.path.join(args.output,'pre_metrics.json'), 'w') as outfile:
-            outfile.write(jsonstr)

@@ -42,7 +42,6 @@ required = parser.add_argument_group('required arguments')
 optional = parser.add_argument_group('optional arguments')
 
 optional.add_argument('-c', '--config', metavar=('FILEPATH'), help='override default configuration file (./config.yaml)', nargs='?', default='./config.yaml', type=str)
-optional.add_argument('-i', '--input', metavar=('FILEPATH'), help='override default output dir (./data)', nargs='?', default='./data', type=str)
 
 optional.add_argument('-s', '--starttime', metavar=('DATETIME'), help='calculate metrics starting from given datetime in ISO format (UTC) e.g. YYYY-MM-DD', nargs='?', default=None)
 optional.add_argument('-e', '--endtime', metavar=('DATETIME'), help='calculate metrics ending to given datetime in ISO format (UTC) e.g. YYYY-MM-DD', nargs='?', default=None)
@@ -160,8 +159,3 @@ rsmetrics_db["metrics"].insert_one(output)
 
 print(jsonstr)
 
-# Using a JSON string
-# export service catalog
-if config['Datastore']['export_CSV']:
-    with open(os.path.join(args.input,'metrics.json'), 'w') as outfile:
-        outfile.write(jsonstr)
