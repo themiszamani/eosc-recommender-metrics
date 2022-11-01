@@ -7,16 +7,20 @@ from datetime import datetime, timezone
 import os
 from natsort import natsorted
 import natsort as ns
-
+import pandas as pd
+from inspect import getmembers, isfunction
 import retrieval
+import csv
 
+# local lib
+import pre_metrics as pm
 import reward_mapping as rm
 from get_service_catalog import get_eosc_marketplace_url, get_service_catalog_items, get_service_catalog_page_content, save_service_items_to_csv
 
 
 __copyright__ = "© "+str(datetime.utcnow().year)+", National Infrastructures for Research and Technology (GRNET)"
 __status__ = "Production"
-__version__ = "0.2"
+__version__ = "0.2.2"
 
 
 os.environ['COLUMNS'] = "90"
@@ -128,12 +132,9 @@ myclient = pymongo.MongoClient("mongodb://"+config["Source"]["MongoDB"]["host"]+
 recdb = myclient[config["Source"]["MongoDB"]["db"]]
 
 
-
-
-
 # automatically associate page ids to service ids
-if config['Service']['download']:
-    service_list_path = os.path.join(args.output,config['Service']['path'])
+if config['Service']['Portal']['download']:
+    service_list_path = os.path.join(args.output,config['Service']['Portal']['path'])
     eosc_url = get_eosc_marketplace_url()
     print(
         "Retrieving page: marketplace list of services... \nGrabbing url: {0}".format(eosc_url))
@@ -146,19 +147,30 @@ if config['Service']['download']:
 
 
 # read map file and save in dict
-with open(os.path.join(args.output,config['Service']['path']), 'r') as f:
+with open(os.path.join(args.output,config['Service']['Portal']['path']), 'r') as f:
     lines=f.readlines()
 
-keys=list(map(lambda x: remove_service_prefix(x.split(',')[2]).strip(), lines))
-values=list(map(lambda x: x.split(',')[0].strip(), lines))
+keys=list(map(lambda x: remove_service_prefix(x.split(',')[-1]).strip(), lines))
+ids=list(map(lambda x: x.split(',')[0].strip(), lines))
+names=list(map(lambda x: x.split(',')[1].strip(), lines))
 
-dmap=dict(zip(keys, values))  #=> {'a': 1, 'b': 2}
+dmap=dict(zip(keys, zip(ids,names)))  #=> {'a': 1, 'b': 2}
+rdmap=dict(zip(ids,zip(keys,names)))
 
+# reward_mapping.py is modified so that the function
+# reads the Transition rewards csv file once
+# consequently, one argument has been added to the
+# called function
+ROOT_DIR='./'
 
-uas={}
+TRANSITION_REWARDS_CSV_PATH = os.path.join(
+    ROOT_DIR, "resources", "transition_rewards.csv"
+)
+transition_rewards_df = pd.read_csv(TRANSITION_REWARDS_CSV_PATH, index_col="source")
 
-for ua in recdb["user_action"].find(query):
+luas=[]
 
+for ua in recdb["user_action"].find(query).sort("user"):
     # set -1 to anonymous users
     try:
         user=ua['user']
@@ -166,134 +178,166 @@ for ua in recdb["user_action"].find(query):
         user=-1
 
     # process data that map from page id to service id exist
+    # for both source and target page ids
+    # if not set service id to -1
+    try:
+        _pageid="/"+"/".join(ua['source']['page_id'].split('/')[1:3])
+        source_service_id=dmap[_pageid][0]
+    except:
+        source_service_id=-1
+
     try:
         _pageid="/"+"/".join(ua['target']['page_id'].split('/')[1:3])
-        service_id=dmap[_pageid]
-
+        target_service_id=dmap[_pageid][0]
     except:
-        continue
+        target_service_id=-1
 
-    symbolic_reward=rm.ua_to_reward_id(User_Action(ua['source']['page_id'],
+    # function has been modified where one more argument is given
+    # in order to avoid time-consuming processing of reading csv file
+    # for every func call
+    symbolic_reward=rm.ua_to_reward_id(transition_rewards_df,
+                                       User_Action(ua['source']['page_id'],
                                                    ua['target']['page_id'],
                                                    ua['action']['order']))
 
     reward=reward_mapping[symbolic_reward]
 
-    uas.setdefault(user,{})
+    luas.append({'user_id':int(user),
+                 'source_resource_id':int(source_service_id), 
+                 'target_resource_id':int(target_service_id), 
+                 'reward':float(reward), 
+                 'panel':ua['source']['root']['type'], 
+                 'timestamp':ua['timestamp'], 
+                 'source_path':ua['source']['page_id'], 
+                 'target_path':ua['target']['page_id'],
+                 'type': 'service', # currently, static
+                 'provider': 'cyfronet', # currently, static
+                 'ingestion': 'batch', # currently, static 
+                })
 
-    # then we need to merge rewards
-    # keep the max value for each record
-    try:
-        if uas[user][service_id][0] < reward:
-            uas[user][service_id]=[reward, ua['source']['root']['type'], ua['timestamp']]
-    except:
-        uas[user].setdefault(service_id,[reward, ua['source']['root']['type'], ua['timestamp']])
-
-luas=[]
-
-for user,_ in natsorted(uas.items(),alg=ns.ns.SIGNED):
-    for service,act in natsorted(uas[user].items(),alg=ns.ns.SIGNED):
-
-        if service:
-            luas.append('{},{},{},{},{}\n'.format(user, service, *act))
-
-
-with open(os.path.join(args.output,'user_actions.csv'), 'w') as o:
-    o.writelines(luas)
-
+#luas=natsorted(luas,alg=ns.ns.SIGNED)
 
 recs=[]
-for rec in recdb["recommendation"].find(query):
+for rec in recdb["recommendation"].find(query).sort("user"):
 
     try:
         user=rec['user']
     except:
         user=-1
 
-    for service in rec['services']:
-        recs.append('{},{},{},{}\n'.format(user, service, '1', rec['timestamp']))
+    recs.append({'user_id':int(user),
+                 'resource_ids': rec['services'],
+                 'timestamp':rec['timestamp'], 
+                 'type': 'service', # currently, static
+                 'provider': 'cyfronet', # currently, static
+                 'ingestion': 'batch', # currently, static 
+                })
 
-recs=natsorted(recs,alg=ns.ns.SIGNED)
+#recs=natsorted(recs,alg=ns.ns.SIGNED)
 
-with open(os.path.join(args.output,'recommendations.csv'), 'w') as o:
-    o.writelines(recs)
+# produce users csv with each user id along with the user's accessed services
+# query users from database for fields _id and accessed_services then create a list of rows
+# each rows contains two elements, first: user_id in string format and second: a space separated sorted list of accessed services 
+users = recdb['user'].find({},{'accessed_services':1})
+users = list(map(lambda x: {'id':int(str(x['_id'])),
+                            'accessed_resources': sorted(set(x['accessed_services'])),
+                            'created_on': None,
+                            'deleted_on': None,
+                            'provider': 'cyfronet', # currently, static
+                            'ingestion': 'batch', # currently, static 
+                           }, users))
 
+if config['Service']['from']=='page_map':
 
-# export user catalog
-if config['User']['export']:
+    _ss=natsorted(list(set(list(map(lambda x: x+'\n',ids)))),alg=ns.ns.SIGNED)
+    resources=[]
+    for s in _ss:
+        try:
+            #ss.append(s.strip()+',"'+rdmap[s.strip()][1]+'",'+rdmap[s.strip()][0]+'\n')
+            resources.append({'id':int(s.strip()),
+                       'name':rdmap[s.strip()][1],
+                       'path':rdmap[s.strip()][0],
+                       'created_on': None,
+                       'deleted_on': None,
+                       'type': 'service', # currently, static
+                       'provider': 'cyfronet', # currently, static
+                       'ingestion': 'batch', # currently, static
+                       })
+        except:
+            continue
 
-    if config['User']['from']=='user_actions':
-        us=natsorted(list(set(list(map(lambda x: x.split(',')[0]+'\n',luas)))),alg=ns.ns.SIGNED)
+else: # 'source'
+    _query=""
+    if config['Service']['published']:
+        _query={"status":"published"}
  
-    elif config['User']['from']=='recommendations':
-        us=natsorted(list(set(list(map(lambda x: x.split(',')[0]+'\n',recs)))),alg=ns.ns.SIGNED)
+    _ss=natsorted(list(set(list(map(lambda x: str(x['_id'])+',"'+str(x['name'])+'"\n',recdb["service"].find(_query))))),alg=ns.ns.SIGNED)
+    resources=[]
+    for s in _ss:
+        try:
+            #ss.append(s.strip()+','+rdmap[s.split(',')[0]]+'\n')
+            resources.append({'id':int(s.split(',')[0]),
+                       'name':rdmap[s.split(',')[0]][1],
+                       'path':rdmap[s.split(',')[0]][0],
+                       'created_on': None,
+                       'deleted_on': None,
+                       'type': 'service', # currently, static
+                       'provider': 'cyfronet', # currently, static
+                       'ingestion': 'batch', # currently, static
+                       })
 
-    else: # 'source'
-        us=natsorted(list(set(list(map(lambda x: str(x['_id'])+'\n',recdb["user"].find({}))))),alg=ns.ns.SIGNED)
+        except:
+            continue
 
-    with open(os.path.join(args.output,'users.csv'), 'w') as o:
-        o.writelines(us)
+# store data to Mongo DB
 
+# connect to db server
+datastore = pymongo.MongoClient("mongodb://"+config["Datastore"]["MongoDB"]["host"]+":"+str(config["Datastore"]["MongoDB"]["port"])+"/", uuidRepresentation='pythonLegacy')
 
-# export service catalog
-if config['Service']['export']:
+# use db
+rsmetrics_db = datastore[config["Datastore"]["MongoDB"]["db"]]
 
-    if config['Service']['from']=='user_actions':
-        ss=natsorted(list(set(list(map(lambda x: x.split(',')[1]+'\n',luas)))),alg=ns.ns.SIGNED)
- 
-    elif config['Service']['from']=='recommendations':
-        ss=natsorted(list(set(list(map(lambda x: x.split(',')[1]+'\n',recs)))),alg=ns.ns.SIGNED)
+rsmetrics_db["user_actions"].delete_many({"provider":'cyfronet', "ingestion":'batch'})
+rsmetrics_db["user_actions"].insert_many(luas)
 
-    elif config['Service']['from']=='page_map':
-        ss=natsorted(list(set(list(map(lambda x: x+'\n',values)))),alg=ns.ns.SIGNED)
+rsmetrics_db["recommendations"].delete_many({"provider":'cyfronet', "ingestion":'batch'})
+rsmetrics_db["recommendations"].insert_many(recs)
 
-    else: # 'source'
-        if config['Service']['published']:
-            ss=natsorted(list(set(list(map(lambda x: str(x['_id'])+'\n',recdb["service"].find({"status":"published"}))))),alg=ns.ns.SIGNED)
-        else:
-            ss=natsorted(list(set(list(map(lambda x: str(x['_id'])+'\n',recdb["service"].find({}))))),alg=ns.ns.SIGNED)
+rsmetrics_db["users"].delete_many({"provider":'cyfronet', "ingestion":'batch'})
+rsmetrics_db["users"].insert_many(users)
 
-    with open(os.path.join(args.output,'services.csv'), 'w') as o:
-        o.writelines(ss)
+rsmetrics_db["resources"].delete_many({"provider":'cyfronet', "ingestion":'batch'})
+rsmetrics_db["resources"].insert_many(resources)
 
 
 # calculate pre metrics
 if config['Metrics']:
-    time_range=recdb["user_action"].distinct("timestamp", query)
 
-    m.timestamp=str(datetime.utcnow())
+    run=pm.Runtime() 
+    run.recdb=recdb
+    run.query=query
+    run.config=config
 
-    m.users=recdb["user"].count_documents({})
-    m.recommendations=recdb["recommendation"].count_documents(query)
-    m.services=recdb["service"].count_documents({})
-    m.user_actions=recdb["user_action"].count_documents(query)
+    md={'timestamp':str(datetime.utcnow())}
 
-    m.user_actions_registered=recdb["user_action"].count_documents({**query,**{"user":{"$exists":True}}})
-    m.user_actions_anonymous=m.user_actions-m.user_actions_registered
-    m.user_actions_registered_perc=round(m.user_actions_registered*100.0/m.user_actions,2)
-    m.user_actions_anonymous_perc=100-m.user_actions_registered_perc
+    # get all functions found in pre_metrics module
+    # apart from 'doc' func
+    # run and save the result in dictionary
+    # where key is the name of the function
+    # and value what it returns
+    # whereas, for each found functions
+    # an extra key_doc element in dictionary is set
+    # to save the text of the function
+    funcs = list(map(lambda x: x[0], getmembers(pm, isfunction)))
+    funcs = list(filter(lambda x: not x=='doc',funcs))
+    for func in funcs:
+        md[func+'_doc']=getattr(pm, func).text
+        md[func]=getattr(pm, func)(run)
 
-    m.user_actions_order=recdb["user_action"].count_documents({**query, **{"action.order":True}})
-    m.user_actions_order_registered=recdb["user_action"].count_documents({**query, **{"action.order":True,"user":{"$exists":True}}})
-    m.user_actions_order_anonymous=m.user_actions_order-m.user_actions_order_registered
-    m.user_actions_order_registered_perc=round(m.user_actions_order_registered*100.0/m.user_actions_order,2)
-    m.user_actions_order_anonymous_perc=100-m.user_actions_order_registered_perc
+    jsonstr = json.dumps(md)
 
-    m.user_actions_panel=recdb["user_action"].count_documents({**query, **{"source.root.type":"recommendation_panel"}})
-    m.user_actions_panel_perc=round(m.user_actions_panel*100.0/m.user_actions,2)
+    rsmetrics_db.drop_collection("pre_metrics")
+    rsmetrics_db["pre_metrics"].insert_one(md)
 
-    m.service_catalog=len(recdb["recommendation"].distinct("services", query))
-
-    # catalog coverage
-    m.service_catalog_perc=round(m.service_catalog*100.0/m.services,2)
-
-    # user coverage
-    m.user_catalog=len(recdb["user_action"].distinct("user", query))
-    m.user_catalog_perc=round(m.user_catalog*100.0/m.users,2)
-
-    jsonstr = json.dumps(m.__dict__)
     print(jsonstr)
 
-    # Using a JSON string
-    with open(os.path.join(args.output,'pre_metrics.json'), 'w') as outfile:
-        outfile.write(jsonstr)

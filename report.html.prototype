@@ -11,7 +11,8 @@
 
 .card {
     animation-name: fadein;
-    animation-duration: 2s;
+    animation-duration: 1s;
+    margin-bottom: 25px;
 }
 
 @keyframes fadein {
@@ -33,7 +34,65 @@
     color: #FAC0E7;
 }
 
-    </style>
+.card-hit-rate {
+    background-color: #6cae80;
+    color: #d9fac0;
+}
+
+.card-ctr {
+    background-color: #a55f80;
+    color: #f9bdd6;
+}
+
+.card-diversity {
+    background-color: #FA8B1C;
+    color:#F4E588;
+}
+
+.card-novelty {
+    background-color: #ffaf26;
+    color:#f6f5a2;
+}
+.card-footer{
+    background-color: rgb(247,247,247,0.8);
+    color: black;
+    font-style: italic;
+}
+
+
+
+span {
+  position: relative;
+}
+
+span:hover:after {
+  background: #333;
+  background: rgba(0, 0, 0, .8);
+  border-radius: 5px;
+  bottom: -34px;
+  color: #fff;
+  content: attr(gloss);
+  left: 20%;
+  padding: 5px 15px;
+  position: absolute;
+  z-index: 98;
+  width: 350px;
+  font-size: 14px;
+}
+
+span:hover:before {
+  border: solid;
+  border-color: #333 transparent;
+  border-width: 0 6px 6px 6px;
+  bottom: -4px;
+  content: "";
+  left: 50%;
+  position: absolute;
+  z-index: 99;
+  font-size: 14px;
+}
+</style>
+
 </head>
 <body>
     <div class="container mt-2">
@@ -48,6 +107,7 @@
             <em class="ml-2">This report contains information about the detailed results of the evaluation process of the recommendation system as well as statistics
                 related to the ingested dataset of user actions and recommendations</em>
         </p>
+
     </div>
     <div class="row">
         <div class="col-3" >
@@ -105,21 +165,69 @@
         <div class="col-4" >
             <div class="card shadow-lg mx-auto card-user-cov">
                 <div class="card-body m-2 text-center">
-                    <h4><i class="icon-user"></i> User Coverage: <strong><span  id="val_user_coverage_perc"></span>%</strong></h4>
+                    <h4><i class="icon-user"></i> User Coverage: <strong><span  id="val_user_coverage"></span>%</strong></h4>
                 </div>
-               
+               <div class="card-footer"> <p id="doc_user_coverage"></p> </div>
             </div>
         </div>
         <div class="col-4" >
             <div class="card shadow-lg mx-auto card-cat-cov">
                 <div class="card-body m-2 text-center">
-                    <h4><i class="icon-list"></i> Catalog Coverage: <strong><span  id="val_catalog_coverage_perc"></span>%</strong></h4>
+                    <h4><i class="icon-list"></i> Catalog Coverage: <strong><span  id="val_catalog_coverage"></span>%</strong></h4>
                 </div>
-               
+               <div class="card-footer"> <p id="doc_catalog_coverage"></p> </div>
+            </div>
+        </div>
+         <div class="col-4" >
+            <div class="card shadow-lg mx-auto card-hit-rate">
+                <div class="card-body m-2 text-center">
+                    <h4><i class="icon-ok-sign"></i> Hit Rate: <strong><span  id="val_hit_rate"></span>%</strong></h4>
+                </div>
+               <div class="card-footer"> <p id="doc_hit_rate"></p> </div>
+            </div>
+        </div>
+        <div class="col-5" >
+            <div class="card shadow-lg mx-auto card-ctr">
+                <div class="card-body m-2 text-center">
+                    <h4><i class="icon-hand-up"></i> Click-through Rate (CTR): <strong><span  id="val_click_through_rate"></span>%</strong></h4>
+                </div>
+               <div class="card-footer"> <p id="doc_click_through_rate"></p> </div>
+            </div>
+        </div>
+         <div class="col-5" >
+            <div class="card shadow-lg mx-auto card-diversity">
+                <div class="card-body m-2 text-center">
+                    <h4><i class="icon-spinner"></i> Diversity (Shannon Entropy): <strong><span  id="val_diversity"></span></strong></h4>
+                </div>
+               <div class="card-footer"> <p id="doc_diversity"></p> </div>
+            </div>
+        </div>
+        <div class="col-5" >
+            <div class="card shadow-lg mx-auto card-diversity">
+                <div class="card-body m-2 text-center">
+                    <h4><i class="icon-spinner"></i> Diversity (Gini Index): <strong><span  id="val_diversity_gini"></span></strong></h4>
+                </div>
+               <div class="card-footer"> <p id="doc_diversity_gini"></p> </div>
+            </div>
+        </div>
+        <div class="col-5" >
+            <div class="card shadow-lg mx-auto card-novelty">
+                <div class="card-body m-2 text-center">
+                    <h4><i class="icon-star"></i> Novelty: <strong><span  id="val_novelty"></span></strong></h4>
+                </div>
+               <div class="card-footer"> <p id="doc_novelty"></p> </div>
             </div>
         </div>
     </div>
 
+<div class="col-4">
+
+        <h3></h3>
+        <p>
+            <i class="icon-clock"></i>
+             <em class="ml-2"> Generated on: <code><i  id="val_timestamp"></i></code> </em>
+        </p>
+</div>
     
   
     
@@ -130,20 +238,47 @@
 <script>
 
 function fill(data){
+
+    // transform data to flat structure
+    flat = {}
+    flat['timestamp'] = data['timestamp']
+    // add metrics
+    for (metric of data['metrics']) {
+        flat[metric['name']] = metric['value']
+        flat[metric['name'] + '_doc'] = metric['doc']
+    }
+    // add statistics
+    for (stat of data['statistics']) {
+        flat[stat['name']] = stat['value']
+        flat[stat['name'] + '_doc'] = stat['doc']
+    }
+
+
     // what to fill
-    let fill_list = ['users', 'recommendations', 'services', 'user_actions','user_actions_order', 'user_actions_registered', 'user_actions_anonymous', 'user_actions_order_registered', 'user_actions_order_anonymous', 'user_actions_registered_perc', 'user_actions_anonymous_perc', 'user_actions_order_registered_perc', 'user_actions_order_anonymous_perc', 'catalog_coverage_perc', 'user_coverage_perc'];
+    let fill_list = ['users', 'recommendations', 'services', 'user_actions','user_actions_order', 'user_actions_registered', 
+                     'user_actions_anonymous', 'user_actions_order_registered', 'user_actions_order_anonymous', 'user_actions_registered_perc', 
+                     'user_actions_anonymous_perc', 'user_actions_order_registered_perc', 'user_actions_order_anonymous_perc', 
+                     'catalog_coverage', 'user_coverage', 'timestamp', 'hit_rate', 'click_through_rate', 'diversity', 'diversity_gini', 'novelty'];
+
+
 
     for (item of fill_list) {
         key = 'val_' + item 
-        value = data[item]
-        el = document.getElementById(key).textContent = value
-
+        value = flat[item]
+        value_doc=flat[item+'_doc']
+        document.getElementById(key).textContent = value
+        document.getElementById(key).setAttribute('gloss', value_doc);
+        // Add ui footers with documentation string for some prominent metrics
+        let doc_el = document.getElementById('doc_'+item);
+        if (doc_el) { 
+            doc_el.textContent=value_doc;
+        }
     }
 }
 
 // Autostart
 (function() {
-  fetch('metrics.json')
+  fetch("{{metric_source}}")
   .then(response => response.json())
   .then(data => fill(data));
 }());

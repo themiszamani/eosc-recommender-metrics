@@ -2,6 +2,7 @@
 import sys, argparse
 import json
 import yaml
+import pymongo
 from datetime import datetime, timezone
 import os
 import pandas as pd
@@ -14,7 +15,7 @@ import metrics as m
 __copyright__ = "© "+str(datetime.utcnow().year)+", National Infrastructures for Research and Technology (GRNET)"
 
 __status__ = "Production"
-__version__ = "0.2"
+__version__ = "0.2.2"
 
 
 os.environ['COLUMNS'] = "90"
@@ -40,14 +41,10 @@ parser._action_groups.pop()
 required = parser.add_argument_group('required arguments')
 optional = parser.add_argument_group('optional arguments')
 
-#optional.add_argument('-c', '--config', metavar=('FILEPATH'), help='override default configuration file (./config.yaml)', nargs='?', default='./config.yaml', type=str)
-optional.add_argument('-i', '--input', metavar=('FILEPATH'), help='override default output dir (./data)', nargs='?', default='./data', type=str)
+optional.add_argument('-c', '--config', metavar=('FILEPATH'), help='override default configuration file (./config.yaml)', nargs='?', default='./config.yaml', type=str)
 
 optional.add_argument('-s', '--starttime', metavar=('DATETIME'), help='calculate metrics starting from given datetime in ISO format (UTC) e.g. YYYY-MM-DD', nargs='?', default=None)
 optional.add_argument('-e', '--endtime', metavar=('DATETIME'), help='calculate metrics ending to given datetime in ISO format (UTC) e.g. YYYY-MM-DD', nargs='?', default=None)
-
-optional.add_argument('--users', help='enable reading total users from users.csv, otherwise it will be calculated according to the user actions', action='store_true', default=False)
-optional.add_argument('--services', help='enable reading total services from services.csv, otherwise it will be calculated according to the user actions', action='store_true', default=False)
 
 optional.add_argument('-h', '--help', action='help', help='show this help message and exit')
 optional.add_argument('-v', '--version', action='version', version='%(prog)s v'+__version__)
@@ -72,88 +69,93 @@ if args.starttime and args.endtime:
         print('End date must be older than start date')
         sys.exit(0)
 
+# read configuration file
+with open(args.config, 'r') as _f:
+    config=yaml.load(_f, Loader=yaml.FullLoader)
+
 # read data
-run.user_actions=pd.read_csv(os.path.join(args.input,'user_actions.csv'),names=["User", "Service", "Reward", "Action", "Timestamp"])
-run.recommendations=pd.read_csv(os.path.join(args.input,'recommendations.csv'),names=["User", "Service", "Rating", "Timestamp"])
+# connect to db server
+datastore = pymongo.MongoClient("mongodb://"+config["Datastore"]["MongoDB"]["host"]+":"+str(config["Datastore"]["MongoDB"]["port"])+"/", uuidRepresentation='pythonLegacy')
+
+# use db
+rsmetrics_db = datastore[config["Datastore"]["MongoDB"]["db"]]
+
+# first column (_id) ignored, where iloc is used
+run.user_actions_all=pd.DataFrame(list(rsmetrics_db["user_actions"].find())).iloc[:,1:]
+run.user_actions_all.columns=["User", "Source_Service", "Target_Service", "Reward", "Action", "Timestamp", "Source_Page_ID", "Target_Page_ID", "Type", "Provider", "Ingestion"]
+
+run.recommendations=pd.DataFrame(list(rsmetrics_db["recommendations"].aggregate([{"$unwind":"$resource_ids"}]))).iloc[:,1:]
+run.recommendations.columns=["User", "Service", "Timestamp", "Type", "Provider", "Ingestion"]
+
+run.users=pd.DataFrame(list(rsmetrics_db["users"].find())).iloc[:,1:]
+run.users.columns=["User", "Services", "Created_on", "Deleted_on", "Provider", "Ingestion"]
+
+run.services=pd.DataFrame(list(rsmetrics_db["resources"].find())).iloc[:,1:]
+run.services.columns=["Service", "Name", "Page", "Created_on", "Deleted_on", "Type", "Provider", "Ingestion"]
 
 # convert timestamp column to datetime object
-run.user_actions['Timestamp']= pd.to_datetime(run.user_actions['Timestamp'])
+run.user_actions_all['Timestamp']= pd.to_datetime(run.user_actions_all['Timestamp'])
+
 run.recommendations['Timestamp']= pd.to_datetime(run.recommendations['Timestamp'])
 
-# restrict data to datetime range
+# restrict user actions and recommendations data to datetime range
 if args.starttime:
-    run.user_actions=run.user_actions[(run.user_actions['Timestamp'] > args.starttime) & (run.user_actions['Timestamp'] < args.endtime)]
+    run.user_actions_all=run.user_actions_all[(run.user_actions_all['Timestamp'] > args.starttime) & (run.user_actions_all['Timestamp'] < args.endtime)]
     run.recommendations=run.recommendations[(run.recommendations['Timestamp'] > args.starttime) & (run.recommendations['Timestamp'] < args.endtime)]
 
 else:
-    run.user_actions=run.user_actions[run.user_actions['Timestamp'] < args.endtime]
+    run.user_actions_all=run.user_actions_all[run.user_actions_all['Timestamp'] < args.endtime]
     run.recommendations=run.recommendations[run.recommendations['Timestamp'] < args.endtime]
 
-# populate users and services
-# if no users or services provided use
-# respective columns found in user_actions instead
-if args.users:
-    run.users=pd.read_csv(os.path.join(args.input,'users.csv'),names=["User"])
+# remove user actions when user or service does not exist in users' or services' catalogs
+# adding -1 in all catalogs indicating the anonynoums users or not-known services
+run.user_actions = run.user_actions_all[run.user_actions_all['User'].isin(run.users['User'].tolist()+[-1])]
+run.user_actions = run.user_actions[run.user_actions['Source_Service'].isin(run.services['Service'].tolist()+[-1])]
+run.user_actions = run.user_actions[run.user_actions['Target_Service'].isin(run.services['Service'].tolist()+[-1])]
 
-if args.services:
-    run.services=pd.read_csv(os.path.join(args.input,'services.csv'),names=["Service"])
+# remove recommendations when user or service does not exist in users' or services' catalogs
+# adding -1 in all catalogs indicating the anonynoums users or not-known services
+run.recommendations = run.recommendations[run.recommendations['User'].isin(run.users['User'].tolist()+[-1])]
+run.recommendations = run.recommendations[run.recommendations['Service'].isin(run.services['Service'].tolist()+[-1])]
 
 
-md={'timestamp':str(datetime.utcnow())}
+output={'timestamp':str(datetime.utcnow())}
+metrics = []
+statistics = []
 
-# get all functions found in metrics module
-# apart from 'doc' func
-# run and save the result in dictionary
-# where key is the name of the function
-# and value what it returns
-# whereas, for each found functions
-# an extra key_doc element in dictionary is set
-# to save the text of the function
-funcs = list(map(lambda x: x[0], getmembers(m, isfunction)))
-funcs = list(filter(lambda x: not x=='doc',funcs))
-for func in funcs:
-    md[func+'_doc']=getattr(m, func).text
-    md[func]=getattr(m, func)(run)
+# get all function names in metrics module
+func_names = list(map(lambda x: x[0], getmembers(m, isfunction)))
+# keep all function names except decorators such as metric and statistic
+func_names = list(filter(lambda x: not ( x=='metric' or x=='statistic') ,func_names))
+for func_name in func_names:
+    # get function based on function name
+    func = getattr(m,func_name)
+    # if function has attribute kind (which means that evaluates a metric or a static)
+    if hasattr(func,"kind"):
+        kind = getattr(func,"kind")
+        # execute and get value
+        value= func(run)
+        documentation = ""
+        # if has documentation ge it
+        if hasattr(func,"doc"):
+            documentation = func.doc
+        # prepare json output object with function name, execution result and optional documentation
+        item = {'name':func_name, 'value':value, 'doc':documentation}
+        # if metric add it to the metrics list else to the statistics list
+        if kind == "metric":
+            metrics.append(item)
+        elif kind == "statistic":
+            statistics.append(item)
 
-# get uniq values per column of user actions
-#uniq_uas=uas.nunique()
-#uniq_recs=recs.nunique()
+# Add the two lists to the final output onject
+output['metrics'] = metrics
+output['statistics'] = statistics
 
-#m.users=int(uniq_uas['User']) if not args.users else int(us['User'].nunique())
-#m.services=int(uniq_uas['Service']) if not args.services else int(ss['Service'])
+# this line is necessary in order to store the output to MongoDB
+jsonstr = json.dumps(output,indent=4)
 
-#m.recommendations=len(recs.index)
-#m.user_actions=len(uas.index)
+rsmetrics_db.drop_collection("metrics")
+rsmetrics_db["metrics"].insert_one(output)
 
-#m.user_actions_registered=len(uas[uas['User'] != -1].index)
-#m.user_actions_anonymous=m.user_actions-m.user_actions_registered
-
-#m.user_actions_registered_perc=round(m.user_actions_registered*100.0/m.user_actions,2)
-#m.user_actions_anonymous_perc=100-m.user_actions_registered_perc
-
-#m.user_actions_order=len(uas[uas['Reward'] == 1.0].index)
-
-#m.user_actions_order_registered=len(uas[(uas['Reward'] == 1.0) & (uas['User'] != -1)].index)
-#m.user_actions_order_anonymous=m.user_actions_order-m.user_actions_order_registered
-#m.user_actions_order_registered_perc=round(m.user_actions_order_registered*100.0/m.user_actions_order,2)
-#m.user_actions_order_anonymous_perc=100-m.user_actions_order_registered_perc
-
-#m.user_actions_panel=len(uas[uas['Action'] == 'recommendation_panel'].index)
-#m.user_actions_panel_perc=round(m.user_actions_panel*100.0/m.user_actions,2)
-
-#m.services_suggested=int(uniq_recs['Service'])
-
-# catalog coverage
-#m.services_suggested_perc=round(m.services_suggested*100.0/m.services,2)
-
-# user coverage
-#m.users_suggested=int(uniq_recs['User'])
-#m.users_suggested_perc=round(m.users_suggested*100.0/m.users,2)
-
-jsonstr = json.dumps(md)
-#jsonstr = json.dumps(m.__dict__)
 print(jsonstr)
 
-# Using a JSON string
-with open(os.path.join(args.input,'metrics.json'), 'w') as outfile:
-    outfile.write(jsonstr)

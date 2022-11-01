@@ -1,0 +1,46 @@
+name: Diversity Gini Index
+
+summary: > 
+    Measures Recommendations' diversity. The index is 0 when all items are chosen equally often, and 1 when a single item is always chosen.
+
+description: > 
+    The diversity (\(G\)) of the recommendations according to Gini Index.  The index is 0 when all items are chosen equally often, 
+    and 1 when a single item is always chosen 
+    (see book \(\href{https://link.springer.com/10.1007/978-1-4939-7131-2_110158}{https://link.springer.com/10.1007/978-1-4939-7131-2_110158}\)). Generally, the Gini Index mathematical expression is defined as: 
+    $$G=\frac{1}{n-1}\sum_{j=1}^{n}(2j-n-1)p(i_j)$$where \(i_1,\ldots,i_n\) is the list of items ordered according to increasing \(p(i)\) and each item \(i\) accounts for a proportion \(p(i)\) of user recommendations. In RS Metrics the computation is determined by the following forumla:
+    $$Diversity=\frac{1}{n-1}\sum_{j=1}^{n}(2j-n-1)\left(\frac{count(j)}{recommendations}\right)$$
+
+output:
+    type: float
+    min: 0
+    max: 1
+    comment: The index is 0 when all items are chosen equally often, and 1 when a single item is always chosen.
+
+prerequisites:
+    - recommendations without anonymous users
+    - all available services
+
+process:
+    - step: Clean up
+      details: >
+        Recommendations clean up; entries removal where users or services are not found in "users" or "services" files accordingly
+    - step: Services Impact
+      details: >
+        Calculation of the impact of the services, by counting how many times each service i was suggested to all possible users: count(j)
+    - step: Sort Services Impact from low to high
+      details: >
+        Sort the number of how many times each service (i.e. i) was suggested from the lower to the higher value, in order to apply the respective weight (j). The computation includes services with 0 recommendation occurrence
+    - step: Recommended Probability of the Services
+      details: >
+        For each service calculate its recommended probability by dividing the number of service's occurrence found in the recommendations to the total number of recommendations
+    - step: Service-based product computation
+      details: >
+        Calculation of the product of the recommended probability from previous step and services' respective index j, for each service individually
+    - step: Gini Index computation
+      details: >
+        Computation of the overall value by summing all values from previous step
+
+# This is optional for visual stylization of the metric when displayed on the report
+style:
+    icon: pe-7s-shuffle
+    color: bg-plum-plate

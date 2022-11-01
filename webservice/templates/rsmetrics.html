@@ -1,0 +1,648 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta http-equiv="Content-Language" content="en">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>RS Metrics - Data statistics and metrics computed for the Recommender System (RS)</title>
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, shrink-to-fit=no" />
+    <meta name="description" content="Data statistics and metrics computed for the Recommender System (RS)">
+    <meta name="msapplication-tap-highlight" content="no">
+    <!--
+    =========================================================
+    * ArchitectUI HTML Theme Dashboard - v1.0.0
+    =========================================================
+    * Product Page: https://dashboardpack.com
+    * Copyright 2019 DashboardPack (https://dashboardpack.com)
+    * Licensed under MIT (https://github.com/DashboardPack/architectui-html-theme-free/blob/master/LICENSE)
+    =========================================================
+    * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+    -->
+    <script defer src="/static/assets/scripts/main.js"></script>
+    </script>
+    <link href="/static/main.css" rel="stylesheet">
+</head>
+
+<body>
+    <div class="app-container app-theme-white body-tabs-shadow fixed-sidebar fixed-header">
+        <div class="app-header header-shadow bg-focus header-text-dark">
+            <div class="app-header__logo">
+                <div class="logo-src"></div>
+                <div class="header__pane ms-auto">
+                    <div>
+                        <button type="button" class="hamburger close-sidebar-btn hamburger--elastic"
+                            data-class="closed-sidebar">
+                            <span class="hamburger-box">
+                                <span class="hamburger-inner"></span>
+                            </span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="app-header__mobile-menu">
+                <div>
+                    <button type="button" class="hamburger hamburger--elastic mobile-toggle-nav">
+                        <span class="hamburger-box">
+                            <span class="hamburger-inner"></span>
+                        </span>
+                    </button>
+                </div>
+            </div>
+            <div class="app-header__menu">
+                <span>
+                    <button type="button"
+                        class="btn-icon btn-icon-only btn btn-primary btn-sm mobile-toggle-header-nav">
+                        <span class="btn-icon-wrapper">
+                            <i class="fa fa-ellipsis-v fa-w-6"></i>
+                        </span>
+                    </button>
+                </span>
+            </div>
+            <div class="app-header__content">
+                <div class="app-header-left">
+                </div>
+            </div>
+        </div>
+        <div class="app-main">
+            <style>
+                ul.timeline {
+                    list-style-type: none;
+                    position: relative;
+                }
+
+                ul.timeline:before {
+                    content: ' ';
+                    background: #d4d9df;
+                    display: inline-block;
+                    position: absolute;
+                    left: 29px;
+                    width: 2px;
+                    height: 100%;
+                    z-index: 400;
+                }
+
+                ul.timeline>li {
+                    margin: 20px 0;
+                    padding-left: 20px;
+                }
+
+                ul.timeline>li:before {
+                    content: ' ';
+                    background: white;
+                    display: inline-block;
+                    position: absolute;
+                    border-radius: 50%;
+                    border: 3px solid #22c0e8;
+                    left: 20px;
+                    width: 20px;
+                    height: 20px;
+                    z-index: 400;
+                }
+            </style>
+
+            <script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=default'></script>
+
+            <div class="app-sidebar sidebar-shadow">
+                <div class="app-header__logo">
+                    <div class="logo-src"></div>
+                    <div class="header__pane ms-auto">
+                        <div>
+                            <button type="button" class="hamburger close-sidebar-btn hamburger--elastic"
+                                data-class="closed-sidebar">
+                                <span class="hamburger-box">
+                                    <span class="hamburger-inner"></span>
+                                </span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="app-header__mobile-menu">
+                    <div>
+                        <button type="button" class="hamburger hamburger--elastic mobile-toggle-nav">
+                            <span class="hamburger-box">
+                                <span class="hamburger-inner"></span>
+                            </span>
+                        </button>
+                    </div>
+                </div>
+                <div class="app-header__menu">
+                    <span>
+                        <button type="button"
+                            class="btn-icon btn-icon-only btn btn-primary btn-sm mobile-toggle-header-nav">
+                            <span class="btn-icon-wrapper">
+                                <i class="fa fa-ellipsis-v fa-w-6"></i>
+                            </span>
+                        </button>
+                    </span>
+                </div>
+                <div class="scrollbar-sidebar">
+                    <div class="app-sidebar__inner">
+                        <ul class="vertical-nav-menu">
+                            <li class="app-sidebar__heading">Metrics Dashboard</li>
+                            <li>
+                                <a href="/ui" class="mm-active">
+                                    <i class="metismenu-icon pe-7s-rocket"></i>
+                                    RS Metrics
+                                </a>
+                            </li>
+                            <li>
+                                <a href="/ui/kpis">
+                                    <i class="metismenu-icon pe-7s-key"></i>
+                                    KPIs
+                                </a>
+                            </li>
+                            <li class="app-sidebar__heading">Metrics Documentation</li>
+                            {%for key, item in data.sidebar_info.metric_descriptions.items() | sort %}
+                            <li>
+                                <a href="/ui/descriptions/metrics/{{key}}" {%if key==data.metric_active %}
+                                    class="mm-active" {%endif%}>
+                                    <i class="metismenu-icon {{item.style.icon}}"></i>
+                                    {{item.fullname}}
+                                </a>
+                            </li>
+                            {%endfor%}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="app-main__outer">
+                <div class="app-main__inner">
+                    <div class="app-page-title">
+                        <div class="page-title-wrapper">
+                            <div class="page-title-heading">
+                                <div class="page-title-icon">
+                                    <i class="pe-7s-note2 icon-gradient bg-sunny-morning">
+                                    </i>
+                                </div>
+                                <div>RS Metrics
+                                    <div class="page-title-subheading">Data statistics and metrics computed for the
+                                        Recommender System (RS)
+                                    </div>
+                                    
+                                </div>
+                            </div>
+                            <div class="page-title-actions">
+                                {% set start_data = data.start.value.split('.')[0].split(' ') %}
+                                {% set end_data = data.end.value.split('.')[0].split(' ') %}
+                                
+                                   
+                                        
+                                        <small>Start Date:</small> <div class="mb-2 me-2 badge bg-secondary" data-toggle="tooltip" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{start_data[0]}}T{{end_data[1]}}"> <i class="fa fa-calendar"></i> {{start_data[0]}}</div>
+                                        <small>End Date:</small> <div class="mb-2 me-2 badge bg-secondary" data-toggle="tooltip" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{end_data[0]}}T{{end_data[1]}}"><i class="fa fa-calendar"></i> {{end_data[0]}}</div>  
+                                        
+                                  
+                            </div>
+                        </div>
+                    </div>
+
+
+
+                    <div class="row">
+                        <div class="mb-2 me-2 badge bg-secondary">Statistics</div>
+                        <div class="col-md-4">
+                            <div class="pt-0 pb-0 card-body">
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item">
+                                        <div class="widget-content p-0">
+                                            <div class="widget-content-outer">
+                                                <div class="widget-content-wrapper">
+                                                    <div class="widget-content-left">
+                                                        <div class="widget-heading">Users</div>
+                                                        <div class="widget-subheading">{{data.users.doc}}</div>
+                                                    </div>
+                                                    <div class="widget-content-right">
+                                                        <div class="widget-numbers text-success">{{data.users.value}}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </li>
+                                    <li class="list-group-item">
+                                        <div class="widget-content p-0">
+                                            <div class="widget-content-outer">
+                                                <div class="widget-content-wrapper">
+                                                    <div class="widget-content-left">
+                                                        <div class="widget-heading">Services</div>
+                                                        <div class="widget-subheading">{{data.services.doc}}</div>
+                                                    </div>
+                                                    <div class="widget-content-right">
+                                                        <div class="widget-numbers text-primary">{{data.services.value}}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </li>
+                                    <li class="list-group-item">
+                                        <div class="widget-content p-0">
+                                            <div class="widget-content-outer">
+                                                <div class="widget-content-wrapper">
+                                                    <div class="widget-content-left">
+                                                        <div class="widget-heading">Recommendations</div>
+                                                        <div class="widget-subheading">{{data.recommendations.doc}}
+                                                        </div>
+                                                    </div>
+                                                    <div class="widget-content-right">
+                                                        <div class="widget-numbers text-warning">
+                                                            {{data.recommendations.value}}</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="pt-0 pb-0 card-body">
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item">
+                                        <div class="widget-content p-0">
+                                            <div class="widget-content-outer">
+                                                <div class="widget-content-wrapper">
+                                                    <div class="widget-content-left">
+                                                        <div class="font-icon-wrapper font-icon-lg">
+                                                            <i class="pe-7s-users icon-gradient bg-mixed-hopes"> </i>
+                                                        </div>
+                                                    </div>
+                                                    <div class="widget-content-left">
+                                                        <div class="widget-heading">User Actions <span
+                                                                class="widget-numbers text-success">{{data.user_actions.value}}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </li>
+                                    <li class="list-group-item">
+                                        <div class="widget-content p-0">
+                                            <div class="widget-content-outer">
+                                                <div class="widget-content-wrapper">
+                                                    <div class="widget-content-left">
+                                                        <div class="widget-heading">by Registered Users</div>
+                                                    </div>
+                                                    <div class="widget-content-right">
+                                                        <div class="widget-numbers text-primary">
+                                                            {{data.user_actions_registered.value}}</div>
+                                                    </div>
+                                                </div>
+                                                <div class="widget-subheading widget-content-right text-primary">
+                                                    ({{data.user_actions_registered_perc.value}}%)</div>
+
+                                            </div>
+                                        </div>
+                                    </li>
+                                    <li class="list-group-item">
+                                        <div class="widget-content p-0">
+                                            <div class="widget-content-outer">
+                                                <div class="widget-content-wrapper">
+                                                    <div class="widget-content-left">
+                                                        <div class="widget-heading">by anonymous Users</div>
+                                                    </div>
+                                                    <div class="widget-content-right">
+                                                        <div class="widget-numbers sm text-warning">
+                                                            {{data.user_actions_anonymous.value}}</div>
+                                                    </div>
+                                                </div>
+                                                <div class="widget-subheading widget-content-right text-warning">
+                                                    ({{data.user_actions_anonymous_perc.value}})</div>
+
+                                            </div>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="pt-0 pb-0 card-body">
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item">
+                                        <div class="widget-content p-0">
+                                            <div class="widget-content-outer">
+                                                <div class="widget-content-wrapper">
+                                                    <div class="widget-content-left">
+                                                        <div class="font-icon-wrapper font-icon-lg">
+                                                            <i class="pe-7s-cash icon-gradient bg-grow-early"> </i>
+                                                        </div>
+                                                    </div>
+                                                    <div class="widget-content-left">
+                                                        <div class="widget-heading">Total Orders
+                                                            <span
+                                                                class="widget-numbers text-success">{{data.user_actions_order.value}}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </li>
+                                    <li class="list-group-item">
+                                        <div class="widget-content p-0">
+                                            <div class="widget-content-outer">
+                                                <div class="widget-content-wrapper">
+                                                    <div class="widget-content-left">
+                                                        <div class="widget-heading">by Registered Users</div>
+                                                    </div>
+                                                    <div class="widget-content-right">
+                                                        <div class="widget-numbers text-primary">
+                                                            {{data.user_actions_order_registered.value}}</div>
+                                                    </div>
+                                                </div>
+                                                <div class="widget-subheading widget-content-right text-primary">
+                                                    ({{data.user_actions_order_registered_perc.value}}%)</div>
+                                            </div>
+                                        </div>
+                                    </li>
+                                    <li class="list-group-item">
+                                        <div class="widget-content p-0">
+                                            <div class="widget-content-outer">
+                                                <div class="widget-content-wrapper">
+                                                    <div class="widget-content-left">
+                                                        <div class="widget-heading">by anonymous Users</div>
+                                                    </div>
+                                                    <div class="widget-content-right">
+                                                        <div class="widget-numbers text-warning">
+                                                            {{data.user_actions_order_anonymous.value}}</div>
+                                                    </div>
+                                                </div>
+                                                <div class="widget-subheading widget-content-right text-warning">
+                                                    ({{data.user_actions_order_anonymous_perc.value}}%)</div>
+
+                                            </div>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+
+                    </div> <!-- row -->
+                    <div>&nbsp;</div>
+
+
+
+
+
+
+
+                    <div class="row">
+                        <div class="mb-2 me-2 badge bg-secondary">Metrics</div>
+                        <div class="col-md-4">
+                            <div class="card  widget-content">
+                                <div class="widget-content-outer">
+                                    <div class="widget-content-wrapper">
+                                        <div class="widget-content-left">
+                                            <div class="font-icon-wrapper font-icon-lg">
+                                                <i class="pe-7s-user icon-gradient bg-grow-early"> </i>
+                                            </div>
+                                        </div>
+                                        <div class="widget-content-left">
+                                            <div class="widget-heading">
+                                                <h4>User Coverage
+                                                    <a href="/ui/descriptions/metrics/user-coverage">
+                                                    <span class="font-icon-wrapper font-icon-m" style="border:0">
+                                                        <i class="fa fa-address-card icon-gradient bg-plum-plate"></i>
+                                                    </span>
+                                                    </a>
+                                                </h4>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!--end wrapper-->
+                                    <div class="widget-content-wrapper">
+                                        <div class="widget-content-left">
+                                            <div class="widget-subheading">
+                                                {{data.user_coverage.doc}}
+                                            </div>
+                                        </div>
+                                        <div class="widget-content-left">
+                                            <div class="widget-numbers text-success">
+                                                <span>{{data.user_coverage.value}}%</span></div>
+                                        </div>
+                                    </div>
+                                    <!--end wrapper-->
+                                </div>
+                            </div>
+                            <!--end content-->
+
+                        </div>
+                        <!--end col-4-->
+                        <div class="col-md-4">
+                            <div class="card  widget-content">
+                                <div class="widget-content-outer">
+                                    <div class="widget-content-wrapper">
+                                        <div class="widget-content-left">
+                                            <div class="font-icon-wrapper font-icon-lg">
+                                                <i class="pe-7s-box2 icon-gradient bg-malibu-beach"> </i>
+                                            </div>
+                                        </div>
+                                        <div class="widget-content-left">
+                                            <div class="widget-heading">
+                                                <h4>Catalog Coverage
+                                                    <a href="/ui/descriptions/metrics/catalog-coverage">
+                                                    <span class="font-icon-wrapper font-icon-m" style="border:0">
+                                                        <i class="fa fa-address-card icon-gradient bg-plum-plate"></i>
+                                                    </span>
+                                                    </a>
+                                                </h4>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!--end wrapper-->
+                                    <div class="widget-content-wrapper">
+                                        <div class="widget-content-left">
+                                            <div class="widget-subheading">
+                                                {{data.catalog_coverage.doc}}
+                                            </div>
+                                        </div>
+                                        <div class="widget-content-left">
+                                            <div class="widget-numbers text-success">
+                                                <span>{{data.catalog_coverage.value}}%</span></div>
+                                        </div>
+                                    </div>
+                                    <!--end wrapper-->
+                                </div>
+                            </div>
+                            <!--end content-->
+
+                        </div>
+                        <!--end col-4-->
+
+
+                        <div class="col-md-4">
+                            <div class="card  widget-content">
+                                <div class="widget-content-outer">
+                                    <div class="widget-content-wrapper">
+                                        <div class="widget-content-left">
+                                            <div class="font-icon-wrapper font-icon-lg">
+                                                <i
+                                                    class="{{data.sidebar_info.metric_descriptions.get('diversity-gini').style.icon}} icon-gradient {{data.sidebar_info.metric_descriptions.get('diversity-gini').style.color}}">
+                                                </i>
+                                            </div>
+                                        </div>
+                                        <div class="widget-content-left">
+                                            <div class="widget-heading">
+                                                <h4>Diversity (Gini Index)
+                                                    <a href="/ui/descriptions/metrics/diversity-gini">
+                                                    <span class="font-icon-wrapper font-icon-m" style="border:0">
+                                                        <i class="fa fa-address-card icon-gradient bg-plum-plate"></i>
+                                                    </span>
+                                                    </a>
+                                                </h4>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!--end wrapper-->
+                                    <div class="widget-content-wrapper">
+                                        <div class="widget-content-left">
+                                            <div class="widget-subheading">
+                                                {{data.diversity_gini.doc}}
+                                            </div>
+                                        </div>
+                                        <div class="widget-content-left">
+                                            <div class="widget-numbers text-success"><span>
+                                                    {{data.diversity_gini.value}}
+
+                                                </span></div>
+                                        </div>
+                                    </div>
+                                    <!--end wrapper-->
+                                </div>
+                            </div>
+                            <!--end content-->
+
+                        </div>
+                        <!--end col-4-->
+
+
+                    </div> <!-- row -->
+                    <div>&nbsp;</div>
+
+
+
+
+
+
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="card  widget-content">
+                                <div class="widget-content-outer">
+                                    <div class="widget-content-wrapper">
+                                        <div class="widget-content-left">
+                                            <div class="font-icon-wrapper font-icon-lg">
+                                                <i
+                                                    class="{{data.sidebar_info.metric_descriptions.diversity.style.icon}} icon-gradient {{data.sidebar_info.metric_descriptions.diversity.style.color}}">
+                                                </i>
+                                            </div>
+                                        </div>
+                                        <div class="widget-content-left">
+                                            <div class="widget-heading">
+                                                <h4>Diversity (Sh. Entropy)
+                                                    <a href="/ui/descriptions/metrics/diversity">
+                                                    <span class="font-icon-wrapper font-icon-m" style="border:0">
+                                                        <i class="fa fa-address-card icon-gradient bg-plum-plate"></i>
+                                                    </span>
+                                                    </a>
+                                                </h4>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!--end wrapper-->
+                                    <div class="widget-content-wrapper">
+                                        <div class="widget-content-left">
+                                            <div class="widget-subheading">
+                                                {{data.diversity.doc}}
+                                            </div>
+                                        </div>
+                                        <div class="widget-content-left">
+                                            <div class="widget-numbers text-success"><span>{{data.diversity.value}}</span></div>
+                                        </div>
+                                    </div>
+                                    <!--end wrapper-->
+                                </div>
+                            </div>
+                            <!--end content-->
+
+                        </div>
+                        <!--end col-4-->
+                        <div class="col-md-4">
+                            <div class="card  widget-content">
+                                <div class="widget-content-outer">
+                                    <div class="widget-content-wrapper">
+                                        <div class="widget-content-left">
+                                            <div class="font-icon-wrapper font-icon-lg">
+                                                <i
+                                                    class="{{data.sidebar_info.metric_descriptions.novelty.style.icon}} icon-gradient {{data.sidebar_info.metric_descriptions.novelty.style.color}}">
+                                                </i>
+                                            </div>
+                                        </div>
+                                        <div class="widget-content-left">
+                                            <div class="widget-heading">
+                                                <h4>Novelty
+                                                    <a href="/ui/descriptions/metrics/novelty">
+                                                    <span class="font-icon-wrapper font-icon-m" style="border:0">
+                                                        <i class="fa fa-address-card icon-gradient bg-plum-plate"></i>
+                                                    </span>
+                                                    </a>
+                                                </h4>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!--end wrapper-->
+                                    <div class="widget-content-wrapper">
+                                        <div class="widget-content-left">
+                                            <div class="widget-subheading">
+                                                {{data.novelty.doc}}
+                                            </div>
+                                        </div>
+                                        <div class="widget-content-left">
+                                            <div class="widget-numbers text-success"><span>{{data.novelty.value}}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!--end wrapper-->
+                                </div>
+                            </div>
+                            <!--end content-->
+
+                        </div>
+                        <!--end col-4-->
+
+
+                    </div> <!-- row -->
+                    <div>&nbsp;</div>
+
+
+                </div> <!-- inner -->
+                <div class="app-wrapper-footer">
+                    <div class="app-footer">
+                        <div class="app-footer__inner">
+                            <div class="app-footer-left">
+                                <ul class="nav">
+                                    <li class="nav-item">
+                                        Copyright &copy;
+                                        <script
+                                            type="text/javascript"> document.write(new Date().getFullYear()); </script>
+                                        <a href="javascript:void(0);">
+                                            National Infrastructures for Research and Technology (GRNET) S. A.
+                                        </a>
+                                        
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="app-footer-right">
+                                {% set timestamp_data = data.timestamp.split('.')[0].split(' ') %}
+                                <small class="me-2">Report Generated on:</small> <div class="mb-2 me-2 badge bg-secondary" data-toggle="tooltip" data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{timestamp_data[0]}}T{{timestamp_data[1]}}"><i class="fa fa-calendar"></i> {{timestamp_data[0]}}</div>  
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div> <!-- outer -->
+        </div>
+    </div>
+</body>
+
+</html>
