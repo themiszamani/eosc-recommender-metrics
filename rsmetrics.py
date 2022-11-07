@@ -3,7 +3,7 @@ import sys, argparse
 import json
 import yaml
 import pymongo
-from datetime import datetime, timezone
+from datetime import datetime
 import os
 import pandas as pd
 from inspect import getmembers, isfunction
@@ -42,7 +42,7 @@ required = parser.add_argument_group('required arguments')
 optional = parser.add_argument_group('optional arguments')
 
 optional.add_argument('-c', '--config', metavar=('FILEPATH'), help='override default configuration file (./config.yaml)', nargs='?', default='./config.yaml', type=str)
-
+optional.add_argument('-p', '--provider', metavar=('DIRPATH'), help='source of the data based on providers specified in the configuration file', nargs='?', default='cyfronet', type=str)
 optional.add_argument('-s', '--starttime', metavar=('DATETIME'), help='calculate metrics starting from given datetime in ISO format (UTC) e.g. YYYY-MM-DD', nargs='?', default=None)
 optional.add_argument('-e', '--endtime', metavar=('DATETIME'), help='calculate metrics ending to given datetime in ISO format (UTC) e.g. YYYY-MM-DD', nargs='?', default=None)
 
@@ -73,24 +73,38 @@ if args.starttime and args.endtime:
 with open(args.config, 'r') as _f:
     config=yaml.load(_f, Loader=yaml.FullLoader)
 
+if args.provider not in [p['name'] for p in config["providers"]]:
+    print('Provider must be in the configuration')
+    sys.exit(0)
+
 # read data
 # connect to db server
-datastore = pymongo.MongoClient("mongodb://"+config["Datastore"]["MongoDB"]["host"]+":"+str(config["Datastore"]["MongoDB"]["port"])+"/", uuidRepresentation='pythonLegacy')
+datastore = pymongo.MongoClient(config["datastore"], uuidRepresentation='pythonLegacy')
 
 # use db
-rsmetrics_db = datastore[config["Datastore"]["MongoDB"]["db"]]
+rsmetrics_db = datastore[config["datastore"].split('/')[-1]]
 
 # first column (_id) ignored, where iloc is used
-run.user_actions_all=pd.DataFrame(list(rsmetrics_db["user_actions"].find())).iloc[:,1:]
+run.user_actions_all=pd.DataFrame(list(rsmetrics_db["user_actions"].find({'provider':args.provider}))).iloc[:,1:]
 run.user_actions_all.columns=["User", "Source_Service", "Target_Service", "Reward", "Action", "Timestamp", "Source_Page_ID", "Target_Page_ID", "Type", "Provider", "Ingestion"]
 
-run.recommendations=pd.DataFrame(list(rsmetrics_db["recommendations"].aggregate([{"$unwind":"$resource_ids"}]))).iloc[:,1:]
-run.recommendations.columns=["User", "Service", "Timestamp", "Type", "Provider", "Ingestion"]
+if args.provider == 'athena':
+    run.recommendations=pd.DataFrame(list(rsmetrics_db["recommendations"].aggregate([{"$match":{'provider':args.provider}},
+                                                                                 {"$addFields": {"x":{"$zip":{"inputs":["$resource_ids","$resource_scores"]}}}},
+                                                                                 {"$unwind":"$x"},
+                                                                                 {"$addFields":{"resource_ids":{"$first":"$x"},"resource_scores":{"$last":"$x"}}}]))).iloc[:,1:-1]
 
-run.users=pd.DataFrame(list(rsmetrics_db["users"].find())).iloc[:,1:]
+    run.recommendations.columns=["User", "Service", "Score", "Timestamp", "Type", "Provider", "Ingestion"]
+
+else:
+    run.recommendations=pd.DataFrame(list(rsmetrics_db["recommendations"].aggregate([{"$match":{'provider':args.provider}},
+                                                                                     {"$unwind":"$resource_ids"}]))).iloc[:,1:]
+    run.recommendations.columns=["User", "Service", "Timestamp", "Type", "Provider", "Ingestion"]
+
+run.users=pd.DataFrame(list(rsmetrics_db["users"].find({"provider": {"$in": [args.provider]}}))).iloc[:,1:]
 run.users.columns=["User", "Services", "Created_on", "Deleted_on", "Provider", "Ingestion"]
 
-run.services=pd.DataFrame(list(rsmetrics_db["resources"].find())).iloc[:,1:]
+run.services=pd.DataFrame(list(rsmetrics_db["resources"].find({"provider": {"$in": [args.provider]}}))).iloc[:,1:]
 run.services.columns=["Service", "Name", "Page", "Created_on", "Deleted_on", "Type", "Provider", "Ingestion"]
 
 # convert timestamp column to datetime object
@@ -118,6 +132,7 @@ run.user_actions = run.user_actions[run.user_actions['Target_Service'].isin(run.
 run.recommendations = run.recommendations[run.recommendations['User'].isin(run.users['User'].tolist()+[-1])]
 run.recommendations = run.recommendations[run.recommendations['Service'].isin(run.services['Service'].tolist()+[-1])]
 
+run.provider=args.provider
 
 output={'timestamp':str(datetime.utcnow())}
 metrics = []
@@ -150,11 +165,13 @@ for func_name in func_names:
 # Add the two lists to the final output onject
 output['metrics'] = metrics
 output['statistics'] = statistics
+output['type'] = 'service'
+output['provider'] = args.provider
 
 # this line is necessary in order to store the output to MongoDB
 jsonstr = json.dumps(output,indent=4)
 
-rsmetrics_db.drop_collection("metrics")
+rsmetrics_db["metrics"].delete_many({"provider": args.provider})
 rsmetrics_db["metrics"].insert_one(output)
 
 print(jsonstr)

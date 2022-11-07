@@ -10,6 +10,7 @@ class Runtime:
         self.user_actions=None
         self.user_actions_all=None
         self.recommendations=None
+        self.provider=None
 
 
 
@@ -30,22 +31,6 @@ def statistic(txt):
     return wrapper
 
 # Metrics
-
-@statistic('The type of the resource')
-def type(object):
-    """
-    The type of the resource, e.g. service
-    """
-    # currently
-    return "service"
-
-@statistic('The provider of the resource')
-def provider(object):
-    """
-    The provider of the resource, e.g. cyfronet
-    """
-    # currently
-    return "cyfronet"
 
 @statistic('The initial date where metrics are calculated on')
 def start(object):
@@ -216,8 +201,10 @@ def user_actions_order_registered_perc(object):
     by registered users and led to order to the total user actions that led to order
     found in Pandas DataFrame object user_actions (in two decimals)
     """
-    return round(user_actions_order_registered(object)*100.0/user_actions_order(object),2)
-
+    try:
+        return round(user_actions_order_registered(object)*100.0/user_actions_order(object),2)
+    except:
+        return 0
 
 @statistic('The percentage (%) of user actions occurred by anonymous users and led to order to the total user actions that led to order')
 def user_actions_order_anonymous_perc(object):
