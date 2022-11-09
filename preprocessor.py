@@ -1,26 +1,18 @@
 #!/usr/bin/env python3
 import sys, argparse
-import json
 import yaml
 import pymongo
-from datetime import datetime, timezone
+from datetime import datetime
 import os
-from natsort import natsorted
-import natsort as ns
 import pandas as pd
 from inspect import getmembers, isfunction
-import retrieval
-import csv
 
 # local lib
-import pre_metrics as pm
 import reward_mapping as rm
-from get_service_catalog import get_eosc_marketplace_url, get_service_catalog_items, get_service_catalog_page_content, save_service_items_to_csv
-
 
 __copyright__ = "© "+str(datetime.utcnow().year)+", National Infrastructures for Research and Technology (GRNET)"
 __status__ = "Production"
-__version__ = "0.2.2"
+__version__ = "1.0.2"
 
 
 os.environ['COLUMNS'] = "90"
@@ -63,10 +55,9 @@ optional = parser.add_argument_group('optional arguments')
 
 optional.add_argument('-c', '--config', metavar=('FILEPATH'), help='override default configuration file (./config.yaml)', nargs='?', default='./config.yaml', type=str)
 optional.add_argument('-o', '--output', metavar=('DIRPATH'), help='override default output dir path (./data)', nargs='?', default='./data', type=str)
-
+optional.add_argument('-p', '--provider', metavar=('DIRPATH'), help='source of the data based on providers specified in the configuration file', nargs='?', default='cyfronet', type=str)
 optional.add_argument('-s', '--starttime', metavar=('DATETIME'), help='process data starting from given datetime in ISO format (UTC) e.g. YYYY-MM-DD', nargs='?', default=None)
 optional.add_argument('-e', '--endtime', metavar=('DATETIME'), help='process data ending to given datetime in ISO format (UTC) e.g. YYYY-MM-DD', nargs='?', default=None)
-
 
 optional.add_argument('-h', '--help', action='help', help='show this help message and exit')
 optional.add_argument('-v', '--version', action='version', version='%(prog)s v'+__version__)
@@ -74,9 +65,6 @@ optional.add_argument('-v', '--version', action='version', version='%(prog)s v'+
 #args=parser.parse_args(args=None if sys.argv[1:] else ['--help'])
 
 args=parser.parse_args()
-
-class Metrics:
-    pass
 
 class Mock:
     pass
@@ -89,10 +77,6 @@ class User_Action:
         self.source.page_id=source_page_id
         self.target.page_id=target_page_id
         self.action.order=order
-
-
-
-m=Metrics()
 
 reward_mapping = {
         "order": 1.0,
@@ -125,37 +109,29 @@ with open(args.config, 'r') as _f:
 
 os.makedirs(args.output, exist_ok=True)
 
-# connect to db server
-myclient = pymongo.MongoClient("mongodb://"+config["Source"]["MongoDB"]["host"]+":"+str(config["Source"]["MongoDB"]["port"])+"/", uuidRepresentation='pythonLegacy')
+provider=None
+for p in config["providers"]:
+    if args.provider == p['name']:
+        provider=p
 
+if not provider:
+    print('Given provider not in configuration')
+    sys.exit(0)
+
+# connect to internal db server for reading users and resources
+datastore = pymongo.MongoClient(config["datastore"], uuidRepresentation='pythonLegacy')
 # use db
-recdb = myclient[config["Source"]["MongoDB"]["db"]]
+rsmetrics_db = datastore[config["datastore"].split('/')[-1]]
 
+# reading resources to be used for filtering user_actions
+resources=pd.DataFrame(list(rsmetrics_db["resources"].find({"provider": {"$in": [args.provider]}}))).iloc[:,1:]
+resources.columns=["Service", "Name", "Page", "Created_on", "Deleted_on", "Type", "Provider", "Ingestion"]
+resources=pd.Series(resources['Service'].values,index=resources['Page']).to_dict()
 
-# automatically associate page ids to service ids
-if config['Service']['Portal']['download']:
-    service_list_path = os.path.join(args.output,config['Service']['Portal']['path'])
-    eosc_url = get_eosc_marketplace_url()
-    print(
-        "Retrieving page: marketplace list of services... \nGrabbing url: {0}".format(eosc_url))
-    eosc_page_content = get_service_catalog_page_content(eosc_url)
-    print("Page retrieved!\nGenerating results...")
-    eosc_service_results = get_service_catalog_items(eosc_page_content)
-    # output to csv
-    save_service_items_to_csv(eosc_service_results, service_list_path)
-    print("File written to {}".format(service_list_path))
-
-
-# read map file and save in dict
-with open(os.path.join(args.output,config['Service']['Portal']['path']), 'r') as f:
-    lines=f.readlines()
-
-keys=list(map(lambda x: remove_service_prefix(x.split(',')[-1]).strip(), lines))
-ids=list(map(lambda x: x.split(',')[0].strip(), lines))
-names=list(map(lambda x: x.split(',')[1].strip(), lines))
-
-dmap=dict(zip(keys, zip(ids,names)))  #=> {'a': 1, 'b': 2}
-rdmap=dict(zip(ids,zip(keys,names)))
+# connect to external db server for reading user_actions and recommendations
+myclient = pymongo.MongoClient(provider['db'], uuidRepresentation='pythonLegacy')
+# use db
+recdb = myclient[provider['db'].split('/')[-1]]
 
 # reward_mapping.py is modified so that the function
 # reads the Transition rewards csv file once
@@ -169,8 +145,8 @@ TRANSITION_REWARDS_CSV_PATH = os.path.join(
 transition_rewards_df = pd.read_csv(TRANSITION_REWARDS_CSV_PATH, index_col="source")
 
 luas=[]
-
-for ua in recdb["user_action"].find(query).sort("user"):
+col='user_actions' if provider['name'] == 'athena' else 'user_action'
+for ua in recdb[col].find(query).sort("user"):
     # set -1 to anonymous users
     try:
         user=ua['user']
@@ -182,13 +158,13 @@ for ua in recdb["user_action"].find(query).sort("user"):
     # if not set service id to -1
     try:
         _pageid="/"+"/".join(ua['source']['page_id'].split('/')[1:3])
-        source_service_id=dmap[_pageid][0]
+        source_service_id=resources[_pageid]
     except:
         source_service_id=-1
 
     try:
         _pageid="/"+"/".join(ua['target']['page_id'].split('/')[1:3])
-        target_service_id=dmap[_pageid][0]
+        target_service_id=resources[_pageid]
     except:
         target_service_id=-1
 
@@ -211,133 +187,45 @@ for ua in recdb["user_action"].find(query).sort("user"):
                  'source_path':ua['source']['page_id'], 
                  'target_path':ua['target']['page_id'],
                  'type': 'service', # currently, static
-                 'provider': 'cyfronet', # currently, static
+                 'provider': provider['name'], # currently, static
                  'ingestion': 'batch', # currently, static 
                 })
 
-#luas=natsorted(luas,alg=ns.ns.SIGNED)
-
 recs=[]
-for rec in recdb["recommendation"].find(query).sort("user"):
 
-    try:
-        user=rec['user']
-    except:
-        user=-1
+if provider['name'] == 'cyfronet':
+    for rec in recdb["recommendation"].find(query).sort("user"):
+        try:
+            user=rec['user']
+        except:
+            user=-1
 
-    recs.append({'user_id':int(user),
+        recs.append({'user_id':int(user),
                  'resource_ids': rec['services'],
                  'timestamp':rec['timestamp'], 
                  'type': 'service', # currently, static
-                 'provider': 'cyfronet', # currently, static
+                 'provider': provider['name'], # currently, static
                  'ingestion': 'batch', # currently, static 
-                })
+                 })
 
-#recs=natsorted(recs,alg=ns.ns.SIGNED)
-
-# produce users csv with each user id along with the user's accessed services
-# query users from database for fields _id and accessed_services then create a list of rows
-# each rows contains two elements, first: user_id in string format and second: a space separated sorted list of accessed services 
-users = recdb['user'].find({},{'accessed_services':1})
-users = list(map(lambda x: {'id':int(str(x['_id'])),
-                            'accessed_resources': sorted(set(x['accessed_services'])),
-                            'created_on': None,
-                            'deleted_on': None,
-                            'provider': 'cyfronet', # currently, static
-                            'ingestion': 'batch', # currently, static 
-                           }, users))
-
-if config['Service']['from']=='page_map':
-
-    _ss=natsorted(list(set(list(map(lambda x: x+'\n',ids)))),alg=ns.ns.SIGNED)
-    resources=[]
-    for s in _ss:
-        try:
-            #ss.append(s.strip()+',"'+rdmap[s.strip()][1]+'",'+rdmap[s.strip()][0]+'\n')
-            resources.append({'id':int(s.strip()),
-                       'name':rdmap[s.strip()][1],
-                       'path':rdmap[s.strip()][0],
-                       'created_on': None,
-                       'deleted_on': None,
-                       'type': 'service', # currently, static
-                       'provider': 'cyfronet', # currently, static
-                       'ingestion': 'batch', # currently, static
-                       })
-        except:
-            continue
-
-else: # 'source'
-    _query=""
-    if config['Service']['published']:
-        _query={"status":"published"}
- 
-    _ss=natsorted(list(set(list(map(lambda x: str(x['_id'])+',"'+str(x['name'])+'"\n',recdb["service"].find(_query))))),alg=ns.ns.SIGNED)
-    resources=[]
-    for s in _ss:
-        try:
-            #ss.append(s.strip()+','+rdmap[s.split(',')[0]]+'\n')
-            resources.append({'id':int(s.split(',')[0]),
-                       'name':rdmap[s.split(',')[0]][1],
-                       'path':rdmap[s.split(',')[0]][0],
-                       'created_on': None,
-                       'deleted_on': None,
-                       'type': 'service', # currently, static
-                       'provider': 'cyfronet', # currently, static
-                       'ingestion': 'batch', # currently, static
-                       })
-
-        except:
-            continue
+elif provider['name'] == 'athena':
+    _query=query.copy()
+    _query['date'] = _query.pop('timestamp')
+    for rec in recdb["recommendation"].find(_query).sort("user_id"):
+        recs.append({'user_id':int(rec['user_id']),
+                 'resource_ids': list(map(lambda x: x['service_id'],rec['recommendation'])),
+                 'resource_scores': list(map(lambda x: x['score'],rec['recommendation'])),
+                 'timestamp':rec['date'], 
+                 'type': 'service', # currently, static
+                 'provider': provider['name'], # currently, static
+                 'ingestion': 'batch', # currently, static 
+                 })
 
 # store data to Mongo DB
 
-# connect to db server
-datastore = pymongo.MongoClient("mongodb://"+config["Datastore"]["MongoDB"]["host"]+":"+str(config["Datastore"]["MongoDB"]["port"])+"/", uuidRepresentation='pythonLegacy')
-
-# use db
-rsmetrics_db = datastore[config["Datastore"]["MongoDB"]["db"]]
-
-rsmetrics_db["user_actions"].delete_many({"provider":'cyfronet', "ingestion":'batch'})
+rsmetrics_db["user_actions"].delete_many({"provider":provider['name'], "ingestion":'batch'})
 rsmetrics_db["user_actions"].insert_many(luas)
 
-rsmetrics_db["recommendations"].delete_many({"provider":'cyfronet', "ingestion":'batch'})
+rsmetrics_db["recommendations"].delete_many({"provider":provider['name'], "ingestion":'batch'})
 rsmetrics_db["recommendations"].insert_many(recs)
-
-rsmetrics_db["users"].delete_many({"provider":'cyfronet', "ingestion":'batch'})
-rsmetrics_db["users"].insert_many(users)
-
-rsmetrics_db["resources"].delete_many({"provider":'cyfronet', "ingestion":'batch'})
-rsmetrics_db["resources"].insert_many(resources)
-
-
-# calculate pre metrics
-if config['Metrics']:
-
-    run=pm.Runtime() 
-    run.recdb=recdb
-    run.query=query
-    run.config=config
-
-    md={'timestamp':str(datetime.utcnow())}
-
-    # get all functions found in pre_metrics module
-    # apart from 'doc' func
-    # run and save the result in dictionary
-    # where key is the name of the function
-    # and value what it returns
-    # whereas, for each found functions
-    # an extra key_doc element in dictionary is set
-    # to save the text of the function
-    funcs = list(map(lambda x: x[0], getmembers(pm, isfunction)))
-    funcs = list(filter(lambda x: not x=='doc',funcs))
-    for func in funcs:
-        md[func+'_doc']=getattr(pm, func).text
-        md[func]=getattr(pm, func)(run)
-
-    jsonstr = json.dumps(md)
-
-    rsmetrics_db.drop_collection("pre_metrics")
-    rsmetrics_db["pre_metrics"].insert_one(md)
-
-    print(jsonstr)
 
