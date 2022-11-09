@@ -63,6 +63,12 @@
             </div>
             <div class="app-header__content">
                 <div class="app-header-left">
+                    <div class="widget-content"><span class="text-light h5">Report:</span></div> 
+                    <div class="widget-content"><select class="form-select" onchange="if (this.value) window.location.href=this.value">
+                        {%for item in data.reports | sort %}
+                        <option value="/ui/reports/{{item}}" {%if item==data.report %} selected {%endif%}>{{item}}</option>
+                        {%endfor%}
+                    </select></div>
                 </div>
             </div>
         </div>
@@ -110,6 +116,7 @@
                     <div class="logo-src"></div>
                     <div class="header__pane ms-auto">
                         <div>
+                            
                             <button type="button" class="hamburger close-sidebar-btn hamburger--elastic"
                                 data-class="closed-sidebar">
                                 <span class="hamburger-box">
@@ -141,15 +148,17 @@
                 <div class="scrollbar-sidebar">
                     <div class="app-sidebar__inner">
                         <ul class="vertical-nav-menu">
+                            
                             <li class="app-sidebar__heading">Metrics Dashboard</li>
+                            
                             <li>
-                                <a href="/ui" class="mm-active">
+                                <a href="/ui/reports/{{data.report}}" class="mm-active">
                                     <i class="metismenu-icon pe-7s-rocket"></i>
                                     RS Metrics
                                 </a>
                             </li>
                             <li>
-                                <a href="/ui/kpis">
+                                <a href="/ui/reports/{{data.report}}/kpis">
                                     <i class="metismenu-icon pe-7s-key"></i>
                                     KPIs
                                 </a>
@@ -157,7 +166,7 @@
                             <li class="app-sidebar__heading">Metrics Documentation</li>
                             {%for key, item in data.sidebar_info.metric_descriptions.items() | sort %}
                             <li>
-                                <a href="/ui/descriptions/metrics/{{key}}" {%if key==data.metric_active %}
+                                <a href="/ui/descriptions/metrics/{{key}}?ref={{data.report}}" {%if key==data.metric_active %}
                                     class="mm-active" {%endif%}>
                                     <i class="metismenu-icon {{item.style.icon}}"></i>
                                     {{item.fullname}}
@@ -401,7 +410,7 @@
                                         <div class="widget-content-left">
                                             <div class="widget-heading">
                                                 <h4>User Coverage
-                                                    <a href="/ui/descriptions/metrics/user-coverage">
+                                                    <a href="/ui/descriptions/metrics/user-coverage?ref={{data.report}}">
                                                     <span class="font-icon-wrapper font-icon-m" style="border:0">
                                                         <i class="fa fa-address-card icon-gradient bg-plum-plate"></i>
                                                     </span>
@@ -441,7 +450,7 @@
                                         <div class="widget-content-left">
                                             <div class="widget-heading">
                                                 <h4>Catalog Coverage
-                                                    <a href="/ui/descriptions/metrics/catalog-coverage">
+                                                    <a href="/ui/descriptions/metrics/catalog-coverage?ref={{data.report}}">
                                                     <span class="font-icon-wrapper font-icon-m" style="border:0">
                                                         <i class="fa fa-address-card icon-gradient bg-plum-plate"></i>
                                                     </span>
@@ -485,7 +494,7 @@
                                         <div class="widget-content-left">
                                             <div class="widget-heading">
                                                 <h4>Diversity (Gini Index)
-                                                    <a href="/ui/descriptions/metrics/diversity-gini">
+                                                    <a href="/ui/descriptions/metrics/diversity-gini?ref={{data.report}}">
                                                     <span class="font-icon-wrapper font-icon-m" style="border:0">
                                                         <i class="fa fa-address-card icon-gradient bg-plum-plate"></i>
                                                     </span>
@@ -541,7 +550,7 @@
                                         <div class="widget-content-left">
                                             <div class="widget-heading">
                                                 <h4>Diversity (Sh. Entropy)
-                                                    <a href="/ui/descriptions/metrics/diversity">
+                                                    <a href="/ui/descriptions/metrics/diversity?ref={{data.report}}">
                                                     <span class="font-icon-wrapper font-icon-m" style="border:0">
                                                         <i class="fa fa-address-card icon-gradient bg-plum-plate"></i>
                                                     </span>
@@ -582,7 +591,7 @@
                                         <div class="widget-content-left">
                                             <div class="widget-heading">
                                                 <h4>Novelty
-                                                    <a href="/ui/descriptions/metrics/novelty">
+                                                    <a href="/ui/descriptions/metrics/novelty?ref={{data.report}}">
                                                     <span class="font-icon-wrapper font-icon-m" style="border:0">
                                                         <i class="fa fa-address-card icon-gradient bg-plum-plate"></i>
                                                     </span>
