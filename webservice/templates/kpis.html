@@ -63,6 +63,12 @@
             </div>
             <div class="app-header__content">
                 <div class="app-header-left">
+                        <div class="widget-content"><span class="text-light h5">Report:</span></div> 
+                        <div class="widget-content"><select class="form-select" onchange="if (this.value) window.location.href=this.value">
+                            {%for item in data.reports | sort %}
+                            <option value="/ui/reports/{{item}}/kpis" {%if item==data.report %} selected {%endif%}>{{item}}</option>
+                            {%endfor%}
+                        </select></div>
                 </div>
             </div>
         </div>
@@ -143,13 +149,13 @@
                         <ul class="vertical-nav-menu">
                             <li class="app-sidebar__heading">Metrics Dashboard</li>
                             <li>
-                                <a href="/ui">
+                                <a href="/ui/reports/{{data.report}}">
                                     <i class="metismenu-icon pe-7s-rocket"></i>
                                     RS Metrics
                                 </a>
                             </li>
                             <li>
-                                <a href="/ui/kpis" class="mm-active">
+                                <a href="/ui/reports/{{data.report}}/kpis" class="mm-active">
                                     <i class="metismenu-icon pe-7s-key"></i>
                                     KPIs
                                 </a>
@@ -157,7 +163,7 @@
                             <li class="app-sidebar__heading">Metrics Documentation</li>
                             {%for key, item in data.sidebar_info.metric_descriptions.items() | sort %}
                             <li>
-                                <a href="/ui/descriptions/metrics/{{key}}" {%if key==data.metric_active %}
+                                <a href="/ui/descriptions/metrics/{{key}}?ref={{data.report}}" {%if key==data.metric_active %}
                                     class="mm-active" {%endif%}>
                                     <i class="metismenu-icon {{item.style.icon}}"></i>
                                     {{item.fullname}}
@@ -211,7 +217,7 @@
 
                                         <div class="widget-heading">
                                             <h4>Click-Through Rate
-                                                <a href="/ui/descriptions/metrics/click-through-rate">
+                                                <a href="/ui/descriptions/metrics/click-through-rate?ref={{data.report}}">
                                                     <span class="font-icon-wrapper font-icon-m" style="border:0"><i
                                                             class="fa fa-address-card icon-gradient bg-plum-plate"></i></span>
                                                 </a>
@@ -241,7 +247,7 @@
 
                                         <div class="widget-heading">
                                             <h4>Hit Rate
-                                                <a href="/ui/descriptions/metrics/hit-rate">
+                                                <a href="/ui/descriptions/metrics/hit-rate?ref={{data.report}}">
                                                     <span class="font-icon-wrapper font-icon-m" style="border:0"><i
                                                             class="fa fa-address-card icon-gradient bg-plum-plate"></i></span>
                                                 </a>
