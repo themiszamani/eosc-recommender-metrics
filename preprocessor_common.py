@@ -53,11 +53,10 @@ required = parser.add_argument_group('required arguments')
 optional = parser.add_argument_group('optional arguments')
 
 optional.add_argument('-c', '--config', metavar=('FILEPATH'), help='override default configuration file (./config.yaml)', nargs='?', default='./config.yaml', type=str)
-optional.add_argument('-o', '--output', metavar=('DIRPATH'), help='override default output dir path (./data)', nargs='?', default='./data', type=str)
 optional.add_argument('-p', '--provider', metavar=('DIRPATH'), help='source of the data based on providers specified in the configuration file', nargs='?', default='cyfronet', type=str)
 optional.add_argument('-s', '--starttime', metavar=('DATETIME'), help='process data starting from given datetime in ISO format (UTC) e.g. YYYY-MM-DD', nargs='?', default=None)
 optional.add_argument('-e', '--endtime', metavar=('DATETIME'), help='process data ending to given datetime in ISO format (UTC) e.g. YYYY-MM-DD', nargs='?', default=None)
-
+optional.add_argument('--use-cache', help='Use the specified file in configuration as the file to read resources', action='store_true')
 optional.add_argument('-h', '--help', action='help', help='show this help message and exit')
 optional.add_argument('-v', '--version', action='version', version='%(prog)s v'+__version__)
 
@@ -83,8 +82,6 @@ if args.starttime and args.endtime:
 with open(args.config, 'r') as _f:
     config=yaml.load(_f, Loader=yaml.FullLoader)
 
-os.makedirs(args.output, exist_ok=True)
-
 provider=None
 for p in config["providers"]:
     if args.provider == p['name']:
@@ -101,27 +98,31 @@ myclient = pymongo.MongoClient(provider['db'], uuidRepresentation='pythonLegacy'
 recdb = myclient[provider['db'].split('/')[-1]]
 
 # automatically associate page ids to service ids
-if config['service']['portal']['download']:
-    service_list_path = os.path.join(args.output,config['service']['portal']['path'])
+# default to no caching
+if not args.use_cache:
     eosc_url = get_eosc_marketplace_url()
-    print(
-        "Retrieving page: marketplace list of services... \nGrabbing url: {0}".format(eosc_url))
+    print("Retrieving page: marketplace list of services... \nGrabbing url: {0}".format(eosc_url))
     eosc_page_content = get_service_catalog_page_content(eosc_url)
     print("Page retrieved!\nGenerating results...")
     eosc_service_results = get_service_catalog_items(eosc_page_content)
-    # output to csv
-    save_service_items_to_csv(eosc_service_results, service_list_path)
-    print("File written to {}".format(service_list_path))
+ 
+    if config['service']['store']:
+        # output to csv
+        save_service_items_to_csv(eosc_service_results, config['service']['store'])
+        print("File written to {}".format(config['service']['store']))
+
+# if cache file is used
+else:
+    with open(config['service']['store'], 'r') as f:
+        lines=f.readlines()
+
+    eosc_service_results=list(map(lambda x: x.split(','),lines))
 
 # read map file and save in dict
-with open(os.path.join(args.output,config['service']['portal']['path']), 'r') as f:
-    lines=f.readlines()
+keys=list(map(lambda x: remove_service_prefix(x[-1]).strip(), eosc_service_results))
+ids=list(map(lambda x: str(x[0]),eosc_service_results))
+names=list(map(lambda x: x[1],eosc_service_results))
 
-keys=list(map(lambda x: remove_service_prefix(x.split(',')[-1]).strip(), lines))
-ids=list(map(lambda x: x.split(',')[0].strip(), lines))
-names=list(map(lambda x: x.split(',')[1].strip(), lines))
-
-dmap=dict(zip(keys, zip(ids,names)))  #=> {'a': 1, 'b': 2}
 rdmap=dict(zip(ids,zip(keys,names)))
 
 # produce users csv with each user id along with the user's accessed services

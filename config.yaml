@@ -13,11 +13,8 @@ datastore: "mongodb://localhost:27017/rsmetrics"
 
 service:
     # Use the EOSC-Marketplace webpage
-    # to retrieve resources and 
-    # associate the page_id and the service_id
-    portal:
-        download: true
-        path: ./page_map
+    # to retrieve resources and associate the page_id and the service_id
+    store: './page_map' # or null
 
     # if true it keeps only published, otherwise all
     # this has an effect in exporting when from is set to 'source' 
