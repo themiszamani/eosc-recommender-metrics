@@ -30,6 +30,7 @@ A framework for counting the recommender metrics
 ```bash
 ./preprocessor_common.py # this will ingest users and resources [from scratch] by retrieving the data from 'cyfronet' provider (which is specified in the config file
 ./preprocessor_common.py -p cyfronet # equivalent to first one
+./preprocessor_common.py -p cyfronet --use-cache # equivalent to first one but use the cache file to read resources instead of downloading them via the EOSC Marketplace
 ./preprocessor_common.py -p athena # currently is not working since users collection only exist in 'cyfronet'
 ```
 7. Run from terminal: `./preprocessor.py -p <provider>` in order to gather `user_actions` and `recommendations` from the particular provider and store them in the `Datastore`:
