@@ -638,3 +638,25 @@ def recommendations_per_day(object):
 
     return res.to_dict()
 
+@statistic('A dictionary of the number of user actions per day')
+def user_actions_per_day(object):
+    """
+    It returns a statistical report in dictionary format. Specifically, the key 
+    is set for each particular day found and its value contains the respective 
+    number of user_actions committed. The dictionary includes all in-between 
+    days (obviously, with the count set to zero). User_actions are already 
+    filtered by those where the user or service does not exist in users' or services' catalogs.
+    """
+    # Since user_actions is in use, user actions when user 
+    # or service does not exist in users' or services' catalogs have been removed
+
+    # count user_actions for each day found in entries
+    res=object.user_actions.groupby(by=object.user_actions['Timestamp'].dt.date).count().iloc[:,0]
+
+    # fill the in between days with zero user_actions
+    res=res.asfreq('D', fill_value=0)
+    
+    # convert datetimeindex to string
+    res.index=res.index.format()
+
+    return res.to_dict()
