@@ -1,0 +1,180 @@
+openapi: 3.0.1
+info:
+  title: EOSC Recommender Metrics - API 
+  description: API of the eosc recommender metrics 
+  version: '0.1'
+servers:
+  - url: https://rseval.eosc.grnet.gr
+
+tags:
+ - name: all
+ - name: metrics
+ - name: statistics
+
+ 
+security:
+ - basic: []
+
+paths:
+
+  /api/reports/{REPORT_NAME}:
+    get:
+      tags: 
+        - all
+      description: Show all metrics and statistics included in a specific report
+      parameters:
+       - name: REPORT_NAME
+         in: path
+         description: name of the report
+         required: true
+         schema:
+           type: string
+      
+      responses:
+        '200':
+          description: "Display all metrics and statistics included in a specific report"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/All"
+  
+  /api/reports/{REPORT_NAME}/metrics:
+    get:
+      tags: 
+        - metrics
+      description: Show a report's metrics
+      parameters:
+       - name: REPORT_NAME
+         in: path
+         description: name of the report
+         required: true
+         schema:
+           type: string
+      
+      responses:
+        '200':
+          description: "Display metrics included in a specific report"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Metric_list"
+  
+  /api/reports/{REPORT_NAME}/metrics/{METRIC_NAME}:
+    get:
+      tags: 
+        - metrics
+      description: Show a report's metrics
+      parameters:
+       - name: REPORT_NAME
+         in: path
+         description: name of the report
+         required: true
+         schema:
+           type: string
+       - name: METRIC_NAME
+         in: path
+         description: name of the metric
+         required: true
+         schema:
+           type: string
+      responses:
+        '200':
+          description: "Display specific metric included in a specific report"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Metric"
+  
+  /api/reports/{REPORT_NAME}/statistics:
+    get:
+      tags: 
+       - statistics
+      description: Show a report's metrics
+      parameters:
+       - name: REPORT_NAME
+         in: path
+         description: name of the report
+         required: true
+         schema:
+           type: string
+      
+      responses:
+        '200':
+          description: "Display statistiscs included in a specific report"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Stat_list"
+  
+  /api/reports/{REPORT_NAME}/statistics/{STATISTIC_NAME}:
+    get:
+      tags: 
+        - statistics
+      description: Show a report's statistics
+      parameters:
+       - name: REPORT_NAME
+         in: path
+         description: name of the report
+         required: true
+         schema:
+           type: string
+       - name: STATISTIC_NAME
+         in: path
+         description: name of the metric
+         required: true
+         schema:
+           type: string
+      responses:
+        '200':
+          description: "Display specific statistic included in a specific report"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Statistic"
+              
+    
+components:
+  schemas:
+    All:
+      type: object
+      properties:
+        metrics:
+          $ref: "#/components/schemas/Metric_list"
+        statistics:
+          $ref: "#/components/schemas/Stat_list"
+    Metric_list:
+      type: array
+      items:
+        $ref: "#/components/schemas/Metric"
+    Stat_list:
+      type: array
+      items:
+        $ref: "#/components/schemas/Statistic"
+    Metric:
+      type: object
+      properties:
+        name:
+          type: string
+          description: the name of the metric
+        value:
+          type: number
+          description: the value of the metric
+        doc:
+          type: string
+          description: short description of the metric
+    Statistic:
+      type: object
+      properties:
+        name:
+          type: string
+          description: the name of the statistic
+        value:
+          type: number
+          description: the value of the statistic
+        doc:
+          type: string
+          description: short description of the statistic
+  securitySchemes:
+    basic:
+      type: http
+      scheme: basic
