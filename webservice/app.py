@@ -92,12 +92,13 @@ def html_metrics(provider_name):
         abort(404)
     
     result = {}
-    stats_needed = ['users', 'recommendations', 'services', 'user_actions',
+    stats_needed = ['users', 'recommended_items', 'services', 'user_actions',
                     'user_actions_registered', 'user_actions_registered_perc',
                     'user_actions_anonymous', 'user_actions_anonymous_perc',
                     'user_actions_order', 'user_actions_order_registered', 'user_actions_order_registered_perc',
                     'user_actions_order_anonymous', 'user_actions_order_anonymous_perc', 'start', 'end']
     for stat_name in stats_needed:
+        print(stat_name)
         result[stat_name] = get_statistic(provider_name, stat_name).get_json()
 
     metrics_needed = ['user_coverage', 'catalog_coverage',
