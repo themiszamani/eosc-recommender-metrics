@@ -617,3 +617,24 @@ def top5_services_ordered(object, k=5, base='https://marketplace.eosc-portal.eu'
                             }})
 
     return topk_services
+
+@statistic('A dictionary of the number of recommendations per day')
+def recommendations_per_day(object):
+    """
+    It returns a statistical report in dictionary format. Specifically, the key 
+    is set for each particular day found and its value contains the respective 
+    number of recommendations committed. The dictionary includes all in-between 
+    days (obviously, with the count set to zero). Recommendations are already 
+    filtered by those where the user or service does not exist in users' or services' catalogs.
+    """
+    # count recommendations for each day found in entries
+    res=object.recommendations.groupby(by=object.recommendations['Timestamp'].dt.date).count().iloc[:,0]
+
+    # fill the in between days with zero recommendations
+    res=res.asfreq('D', fill_value=0)
+    
+    # convert datetimeindex to string
+    res.index=res.index.format()
+
+    return res.to_dict()
+
