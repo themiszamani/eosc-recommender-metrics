@@ -212,6 +212,9 @@ elif provider['name'] == 'athena':
     _query=query.copy()
     _query['date'] = _query.pop('timestamp')
     for rec in recdb["recommendation"].find(_query).sort("user_id"):
+        # if dataset contains null references to user_ids replace them with the value -1
+        if not rec["user_id"]:
+            rec["user_id"] = -1 
         recs.append({'user_id':int(rec['user_id']),
                  'resource_ids': list(map(lambda x: x['service_id'],rec['recommendation'])),
                  'resource_scores': list(map(lambda x: x['score'],rec['recommendation'])),
@@ -224,8 +227,10 @@ elif provider['name'] == 'athena':
 # store data to Mongo DB
 
 rsmetrics_db["user_actions"].delete_many({"provider":provider['name'], "ingestion":'batch'})
-rsmetrics_db["user_actions"].insert_many(luas)
+if len(luas) > 0:
+	rsmetrics_db["user_actions"].insert_many(luas)
 
 rsmetrics_db["recommendations"].delete_many({"provider":provider['name'], "ingestion":'batch'})
-rsmetrics_db["recommendations"].insert_many(recs)
+if len(recs) > 0:
+	rsmetrics_db["recommendations"].insert_many(recs)
 
