@@ -63,6 +63,12 @@
             </div>
             <div class="app-header__content">
                 <div class="app-header-left">
+                            <div class="widget-content"><span class="text-light h5">Report:</span></div> 
+                            <div class="widget-content"><select class="form-select" onchange="if (this.value) window.location.href=this.value">
+                                {%for item in data.reports | sort %}
+                                <option value="/ui/descriptions/metrics/{{data.metric_active}}?ref={{item}}" {%if item==data.ref %} selected {%endif%}>{{item}}</option>
+                                {%endfor%}
+                            </select></div>
                 </div>
             </div>
         </div>
@@ -156,13 +162,13 @@
                         <ul class="vertical-nav-menu">
                             <li class="app-sidebar__heading">Metrics Dashboard</li>
                             <li>
-                                <a href="/ui" >
+                                <a href="/ui/reports/{{data.ref}}" >
                                     <i class="metismenu-icon pe-7s-rocket"></i>
                                     RS Metrics
                                 </a>
                             </li>
                             <li>
-                                <a href="/ui/kpis">
+                                <a href="/ui/reports/{{data.ref}}/kpis">
                                     <i class="metismenu-icon pe-7s-key"></i>
                                     KPIs
                                 </a>
@@ -170,7 +176,7 @@
                             <li class="app-sidebar__heading">Metrics Documentation</li>
                             {%for key, item in data.sidebar_info.metric_descriptions.items() | sort %}
                             <li>
-                                <a href="/ui/descriptions/metrics/{{key}}" {%if key == data.metric_active %} class="mm-active" {%endif%} >
+                                <a href="/ui/descriptions/metrics/{{key}}?ref={{data.ref}}" {%if key == data.metric_active %} class="mm-active" {%endif%} >
                                     <i class="metismenu-icon {{item.style.icon}}"></i>
                                     {{item.fullname}}
                                 </a>

@@ -1,25 +1,20 @@
-# Set the desired connector (e.g. MongoDB)
-Source:
-    MongoDB:
-        host: localhost
-        port: 27017
-        db: recommender_dev
+# Set the desired connector
+# a list of:
+# name/tag, type of database, hostname, port, database
+providers:
+   - name: cyfronet
+     db: "mongodb://localhost:27017/recommender_dev"
+   - name: athena
+     db: "mongodb://localhost:27017/athena_dev"
 
 # The database where the Preprocessor's
 # and RSmetrics data are stored
-Datastore:
-    MongoDB:
-        host: localhost
-        port: 27017
-        db: rsmetrics
+datastore: "mongodb://localhost:27017/rsmetrics"
 
-Service:
+service:
     # Use the EOSC-Marketplace webpage
-    # to retrieve resources and 
-    # associate the page_id and the service_id
-    Portal:
-        download: true
-        path: ./page_map
+    # to retrieve resources and associate the page_id and the service_id
+    store: './page_map' # or null
 
     # if true it keeps only published, otherwise all
     # this has an effect in exporting when from is set to 'source' 
@@ -31,10 +26,5 @@ Service:
     # - 'source': use the Connector
     # - 'page_map': use the EOSC Marketplace
     from: 'page_map' # or 'source'
-
-# Calculate source's metrics (pre-metrics)
-Metrics: true
-
-
 
 
