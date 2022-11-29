@@ -609,25 +609,29 @@ def top5_services_ordered(object, k=5, base='https://marketplace.eosc-portal.eu'
 
     return topk_services
 
-@statistic('A dictionary of the number of recommendations per day')
-def recommendations_per_day(object):
+@statistic('A dictionary of the number of recommended items per day')
+def recommended_items_per_day(object):
     """
-    It returns a statistical report in dictionary format. Specifically, the key 
-    is set for each particular day found and its value contains the respective 
-    number of recommendations committed. The dictionary includes all in-between 
-    days (obviously, with the count set to zero). Recommendations are already 
-    filtered by those where the user or service does not exist in users' or services' catalogs.
+    It returns a a timeseries of recommended item counts per day. Each timeseries item has two fields: date and value
     """
     # count recommendations for each day found in entries
     res=object.recommendations.groupby(by=object.recommendations['Timestamp'].dt.date).count().iloc[:,0]
 
     # fill the in between days with zero recommendations
     res=res.asfreq('D', fill_value=0)
-    
+   
     # convert datetimeindex to string
     res.index=res.index.format()
 
-    return res.to_dict()
+    # convert series to dataframe with extra column having the dates
+    res = res.to_frame().reset_index()
+
+    # rename columns to date, value
+    res.rename(columns={ res.columns[0]: "date", res.columns[1]: "value" }, inplace = True)
+    
+    # return a list of objects with date and value fields
+    return res.to_dict(orient='records')
+    
 
 @statistic('A dictionary of the number of user actions per day')
 def user_actions_per_day(object):
@@ -650,4 +654,11 @@ def user_actions_per_day(object):
     # convert datetimeindex to string
     res.index=res.index.format()
 
-    return res.to_dict()
+    # convert series to dataframe with extra column having the dates
+    res = res.to_frame().reset_index()
+
+    # rename columns to date, value
+    res.rename(columns={ res.columns[0]: "date", res.columns[1]: "value" }, inplace = True)
+    
+    # return a list of objects with date and value fields
+    return res.to_dict(orient='records')
