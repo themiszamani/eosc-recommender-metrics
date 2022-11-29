@@ -617,7 +617,22 @@ def recommended_items_per_day(object):
     # count recommendations for each day found in entries
     res=object.recommendations.groupby(by=object.recommendations['Timestamp'].dt.date).count().iloc[:,0]
 
-    # fill the in between days with zero recommendations
+    # create a Series with period's start and end times and value of 0
+    init=pd.Series([0,0],index=[pd.to_datetime(start(object)).date(), pd.to_datetime(end(object)).date()])
+
+    # remove duplicate entries for corner cases where start and end time match
+    init.drop_duplicates(keep='first', inplace=True)
+
+    # append above two indexes and values (i.e. 0) to the Series
+    # with axis=1, same indexes are being merged
+    # since dataframe is created, get the first column
+    res=pd.concat([res,init],ignore_index=False, axis=1).iloc[:, 0]
+    
+    # convert Nan values created by the concatenation to 0
+    # and change data type back to int
+    res=res.fillna(0).astype(int)
+
+    # fill the in between days with zero user_actions
     res=res.asfreq('D', fill_value=0)
    
     # convert datetimeindex to string
@@ -648,9 +663,24 @@ def user_actions_per_day(object):
     # count user_actions for each day found in entries
     res=object.user_actions.groupby(by=object.user_actions['Timestamp'].dt.date).count().iloc[:,0]
 
+    # create a Series with period's start and end times and value of 0
+    init=pd.Series([0,0],index=[pd.to_datetime(start(object)).date(), pd.to_datetime(end(object)).date()])
+
+    # remove duplicate entries for corner cases where start and end time match
+    init.drop_duplicates(keep='first', inplace=True)
+
+    # append above two indexes and values (i.e. 0) to the Series
+    # with axis=1, same indexes are being merged
+    # since dataframe is created, get the first column
+    res=pd.concat([res,init],ignore_index=False, axis=1).iloc[:, 0]
+    
+    # convert Nan values created by the concatenation to 0
+    # and change data type back to int
+    res=res.fillna(0).astype(int)
+
     # fill the in between days with zero user_actions
     res=res.asfreq('D', fill_value=0)
-    
+
     # convert datetimeindex to string
     res.index=res.index.format()
 
