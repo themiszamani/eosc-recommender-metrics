@@ -1,7 +1,7 @@
 ---
 id: click_through_rate
 title: Click-Through Rate
-sidebar_position: 2
+sidebar_position: 3
 ---
 
 # Click-Through Rate

@@ -1,7 +1,7 @@
 ---
 id: user_coverage
 title: User Coverage
-sidebar_position: 7
+sidebar_position: 8
 ---
 
 # User Coverage

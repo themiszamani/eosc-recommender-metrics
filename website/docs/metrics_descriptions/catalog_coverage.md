@@ -1,7 +1,7 @@
 ---
 id: catalog_coverage
 title: Catalog Coverage
-sidebar_position: 1
+sidebar_position: 2
 ---
 
 # Catalog Coverage

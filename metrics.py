@@ -662,3 +662,64 @@ def user_actions_per_day(object):
     
     # return a list of objects with date and value fields
     return res.to_dict(orient='records')
+
+@metric('The mean value of the accuracy score found for each user defined by the fraction of the number of the correct predictions by the total number of predictions')
+def accuracy(object):
+    """
+    Calculate the accuracy score found for each and retrieve the mean value. 
+    The score is calculated by dividing the number of the correct predictions 
+    by the total number of predictions.
+    """
+    # a list of unique services' ids found in Datastore
+    services_list=object.services['Service'].unique().tolist()
+    # the length of the above value
+    len_services=services(object)
+
+    def score(x):
+        """
+        Inner function called at each row of the final dataframe
+        in order to calculate the accuracy score for each row (=user)
+        """
+        # 'Services' header indicates the accessed services' list,
+        # while the 'Service' header indicates the recommended services' list
+        # if accessed or recommended services' list is empty
+        # it does not calculate any further computations
+        # else for each service found in services_list,
+        # put 1 or 0 if it is also found in the accessed or 
+        # recommended services respectively
+        if not x['Services']:
+           true_values=np.array([0]*len_services)
+        else:
+           true_values=np.array(list(map(lambda s: 1 if s in x['Services'] else 0,services_list)))
+        if not x['Service']:
+           pred_values=np.array([0]*len_services)
+        else:
+           pred_values=np.array(list(map(lambda s: 1 if s in x['Service'] else 0,services_list)))
+
+        # calculate the accuracy score by computing the average of the returned array
+        # The returned array is a True/False array when the respective element of true_values 
+        # is equal or not to the respective element of pred_values
+        x['Services']=np.average(true_values==pred_values)
+        # return the row, where the 'Services' column has the accuracy score now
+        return x
+
+    # a matrix of User ids and the respective accessed services' ids
+    access_df=object.users[['User','Services']]
+
+    # a matrix of User ids and the respective recommended services' ids
+    rec_df=(object.recommendations[['User','Service']].groupby(['User'])
+      .agg({'Service': lambda x: x.unique().tolist()})
+      .reset_index())
+
+    # performs a left join on User id, which means that nan values 
+    # are set for cases where no recommendations were made
+    data=pd.merge(access_df, rec_df, on='User', how='left')
+    # convert nan values to zeros, in order to be handled easily by the inner function
+    data.fillna(0, inplace = True)
+    # apply the score function row-wise
+    data=data.apply(score, axis=1)
+
+    # return the mean value of all users' accuracy score
+    # up to 4 digits precision
+    return round(data['Services'].mean(),4)
+
