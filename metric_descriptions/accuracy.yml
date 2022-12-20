@@ -1,0 +1,42 @@
+name: Accuracy
+
+summary: > 
+    Measures Recommendations' accuracy based on users' access to the services. A value of 1, indicates that the RS model got all the predictions right, and a value of 0 indicates that the RS model did not make a single correct prediction
+
+description: > 
+    The accuracy (\(A\)) of the recommendations is based on users' access to the services. A value of 1, indicates that the RS model got all the predictions right, and a value of 0 indicates that the RS model did not make a single correct prediction. Generally, the Accuracy mathematical expression is defined as: 
+    $$A=\frac{Number\;of\;correct\;predictions}{Total\;number\;of\;predictions}$$In RS Metrics the computation is determined by the following formula: 
+    $$Accuracy=\frac{Number\;of\;correctly\;recommended\;services}{Total\;number\;of\;services}$$where correctness is defined as if the service is both accessed by the user and also it is recommended by the RS
+
+output:
+    type: float
+    min: 0
+    max: 1
+    comment: A value of 1, indicates that the RS model got all the predictions right, and a value of 0 indicates that the RS model did not make a single correct prediction.
+
+prerequisites:
+    - recommendations without anonymous users
+    - all available users (with their accessed services)
+    - all available services
+
+process:
+    - step: Clean up
+      details: >
+        Recommendations clean up; entries removal where users or services are not found in "users" or "services" accordingly
+    - step: Vector creation of the Accessed Services
+      details: >
+        For each user create a vector at the size of the number of the services, and assign a binary value for each service with a value of 1 if it is found in the user's accessed services, or 0 if it is not
+    - step: Vector creation of the Recommended Services
+      details: >
+        For each user create a vector at the size of the number of the services, and assign a binary value for each service with a value of 1 if it is recommended to the user, or 0 if it is not
+    - step: Accuracy score computation
+      details: >
+        For each user compute the average value of the difference vector; a vector which states True if service is found in both accessed and recommended vectors or False if it is not
+    - step: Mean value of Accuracy score
+      details: >
+        Computation of the overall value by calculating the mean value of each user's accuracy score 
+
+# This is optional for visual stylization of the metric when displayed on the report
+style:
+    icon: pe-7s-arc
+    color: bg-sunny-morning

@@ -1,7 +1,7 @@
 ---
 id: diversity_shannon_entropy
 title: Diversity Shannon Entropy
-sidebar_position: 4
+sidebar_position: 5
 ---
 
 # Diversity Shannon Entropy
@@ -29,7 +29,6 @@ The entropy is 0 when a single item is always chosen or recommended, and log n w
 * all available services
 
 ## Process Flow:
-process:
 * ### Clean up
 Recommendations clean up; entries removal where users or services are not found in "users" or "services" files accordingly
 * ### Services Impact

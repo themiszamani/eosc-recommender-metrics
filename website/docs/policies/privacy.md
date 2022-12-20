@@ -42,7 +42,7 @@ In addition, for the purposes of the present, the following definitions shall al
 -   "Website" -- the website accessible via domain name `web-ui-url` including the entirety of the web pages thereof.
 -   " EOSC Recommender Service - Metrics " - [web-ui-url](#)
 -   "User"- the EOSC Recommender Service - Metrics online service user. The acces is restricted to specific user. The dentity is unknown or may not be verified.
--  
+ 
 ---
 
 A. Purpose/s for processing the data collected:
@@ -64,12 +64,12 @@ iii. Special categories of personal data
 
 GRNET SA does not collect, process or gain access in any way to specific data categories, as set forth in the provisions of the legislation in force (in particular data relating to racial or ethnic origin, religion, health data, etc.). In the event that a "user" posts any such special category data on the "website" or on the Argo Service Monitoring, such data will be removed as soon as the management team become aware thereof.
 
-C. Legal bases for processing
+B. Legal bases for processing
 -----------------------------
 
 The processing of "users" personal data is necessary for the performance of the Agreement on the provision of EOSC Recommender Service - Metrics service, in accordance with the needs (technical and organisational) to provide the best possible services, to serve the "users".
 
-D. Access to personal data:
+C. Access to personal data:
 ---------------------------
 
 For providing EOSC Recommender Service - Metrics service  and the seamless operation of such services, access to the "users" personal data shall be granted to the following:
@@ -79,12 +79,12 @@ For providing EOSC Recommender Service - Metrics service  and the seamless opera
 
 The processing of EOSC Recommender Service - Metrics service "users" personal data by the aforementioned, is carried out under the supervision and only at the request of GRNET SA, within the scope of the mission and the role of each associate. Such associates undertake to comply with the same privacy and personal data requirements as GRNET SA itself in accordance to the present Privacy Statement
 
-E. Recipients of collected personal data:
+D. Recipients of collected personal data:
 -----------------------------------------
 
 GRNET SA shall in no way transmit or in any way disclose the EOSC Recommender Service - Metrics service "users" personal data to any third-party entities, private businesses, natural persons or legal entities, public authorities, agencies or other organizations, other than as expressly set out herein. The Argo Service Monitoring service "users" personal data may be disclosed or transmitted to governmental authorities and/or law enforcement officials, only if necessary for the abovementioned purposes, in the context of enforcement of a court decision or a provision of law or if necessary to secure the legitimate interests of GRNET SA in its capacity as processor, in compliance with the terms and conditions of applicable law.
 
-G. Personal data retention periods
+E. Personal data retention periods
 ----------------------------------
 
 The EOSC Recommender Service - Metrics service users personal data shall be retained no longer than it is necessary for the needs of the service and the audits the service is subjected to.
@@ -95,7 +95,7 @@ More specifically:
 | --- | --- |
 | <ul><li>IP address</li><li>Data from website navigation through Cookies</li></ul> | 18 months (log retention) |
 
-H. Privacy and Security of Information:
+F. Privacy and Security of Information:
 ---------------------------------------
 
 The processing of personal data by GRNET SA is performed in a manner that ensures both confidentiality and security thereof. All appropriate organisational and technical measures shall be taken to safeguard data against any accidental or unlawful destruction, accidental loss, alteration, prohibited dissemination or access or any other form of unfair processing. The services provided by GRNET SA are constantly evaluated to be in line with the safety requirements of international standards. GRNET's Information Security Management System (ISMS) has been certified by the accredited certification body, EUROCERT SA In particular:
@@ -116,12 +116,12 @@ Although we follow best security practices to ensure your personal data remains 
 
 Your personal data will be protected according to [the Code of Conduct for Service Providers](http://www.geant.net/uri/dataprotection-code-of-conduct/v1  "the Code  of  Conduct  for Service  Providers") , a common standard for the research and higher education sector to protect your privacy.
 
-I. Contact:
+G. Contact:
 -----------
 
 For any questions or clarifications regarding the present Privacy Statement and as well as in the event of any violation related to personal data issues, "users" may contact the Competent Department of GRNET SA at the e-mail address mentioned hereinabove. They may also contact the Data Protection Officer (DPO) of GRNET S.A., Ms. Vera Meleti, and/or the deputy DPO, Ms. Vasiliki Konstantinopoulou at the e-mail address: dpo@grnet.gr.
 
-K. Recourse/Complaint:
+H. Recourse/Complaint:
 ----------------------
 
 In the event that any EOSC Recommender Service - Metrics service "user" request is not satisfied by the processor, the "user" may at any time address to/ file recourse with the Competent Supervisory Authority, namely the Data Protection Authority [https://www.dpa.gr](https://www.dpa.gr/ "Data Protection Authorit") .

@@ -1,7 +1,7 @@
 ---
 id: hit_rate
 title: Hit Rate
-sidebar_position: 5
+sidebar_position: 6
 ---
 
 # Hit Rate
