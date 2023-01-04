@@ -484,8 +484,6 @@
 
                         </div>
                         <!--end col-4-->
-
-
                         <div class="col-md-4">
                             <div class="card  widget-content">
                                 <div class="widget-content-outer">
@@ -534,11 +532,6 @@
 
                     </div> <!-- row -->
                     <div>&nbsp;</div>
-
-
-
-
-
 
 
                     <div class="row">
@@ -625,7 +618,48 @@
 
                         </div>
                         <!--end col-4-->
+                        <div class="col-md-4">
+                            <div class="card  widget-content">
+                                <div class="widget-content-outer">
+                                    <div class="widget-content-wrapper">
+                                        <div class="widget-content-left">
+                                            <div class="font-icon-wrapper font-icon-lg">
+                                                <i
+                                                    class="{{data.sidebar_info.metric_descriptions.accuracy.style.icon}} icon-gradient {{data.sidebar_info.metric_descriptions.accuracy.style.color}}">
+                                                </i>
+                                            </div>
+                                        </div>
+                                        <div class="widget-content-left">
+                                            <div class="widget-heading">
+                                                <h4>Accuracy
+                                                    <a href="/ui/descriptions/metrics/accuracy?ref={{data.report}}">
+                                                    <span class="font-icon-wrapper font-icon-m" style="border:0">
+                                                        <i class="fa fa-address-card icon-gradient bg-plum-plate"></i>
+                                                    </span>
+                                                    </a>
+                                                </h4>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!--end wrapper-->
+                                    <div class="widget-content-wrapper">
+                                        <div class="widget-content-left">
+                                            <div class="widget-subheading">
+                                                {{data.accuracy.doc}}
+                                            </div>
+                                        </div>
+                                        <div class="widget-content-left">
+                                            <div class="widget-numbers text-success"><span>{{data.accuracy.value}}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!--end wrapper-->
+                                </div>
+                            </div>
+                            <!--end content-->
 
+                        </div>
+                        <!--end col-4-->
 
                     </div> <!-- row -->
                     <div>&nbsp;</div>
