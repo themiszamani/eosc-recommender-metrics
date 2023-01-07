@@ -102,7 +102,7 @@ def html_metrics(provider_name):
         result[stat_name] = get_statistic(provider_name, stat_name).get_json()
 
     metrics_needed = ['user_coverage', 'catalog_coverage',
-                      'diversity', 'diversity_gini', 'novelty']
+                      'diversity', 'diversity_gini', 'novelty', 'accuracy']
 
     for metric_name in metrics_needed:
         result[metric_name] = get_metric(provider_name, metric_name).get_json()

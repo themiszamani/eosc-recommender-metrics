@@ -39,4 +39,4 @@ process:
 # This is optional for visual stylization of the metric when displayed on the report
 style:
     icon: pe-7s-arc
-    color: bg-sunny-morning
+    color: bg-night-sky
