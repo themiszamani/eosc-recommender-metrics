@@ -160,6 +160,12 @@
                                     KPIs
                                 </a>
                             </li>
+                            <li>
+                                <a href="/ui/reports/{{data.report}}/graphs">
+                                    <i class="metismenu-icon pe-7s-graph3"></i>
+                                    Graphs
+                                </a>
+                            </li>
                             <li class="app-sidebar__heading">Metrics Documentation</li>
                             {%for key, item in data.sidebar_info.metric_descriptions.items() | sort %}
                             <li>
@@ -387,18 +393,23 @@
                 <div class="app-wrapper-footer">
                     <div class="app-footer">
                         <div class="app-footer__inner">
-                            <div class="app-footer-left">
-                                <ul class="nav">
-                                    <li class="nav-item">
-                                        Copyright &copy;
-                                        <script
-                                            type="text/javascript"> document.write(new Date().getFullYear()); </script>
-                                        <a href="javascript:void(0);">
-                                            National Infrastructures for Research and Technology (GRNET) S. A.
-                                        </a>
-                                    </li>
-                                </ul>
-                            </div>
+                            <div class="px-4">Copyright &copy;
+                                <script
+                                    type="text/javascript"> document.write(new Date().getFullYear()); </script>
+                                
+                                    GRNET</div>
+                                    <div class="app-footer-left">
+                                        <ul class="nav">
+                                        <li class="nav-item">
+                                           <a class="nav-link" target="_blank" href="http://argoeu.github.io/eosc-recommender-metrics/docs/policies/terms">Terms of Use</a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link" target="_blank" href="http://argoeu.github.io/eosc-recommender-metrics/docs/policies/tom">TOM</a>
+                                         </li>
+                                      
+                                    </ul>
+                                </div>
+                            
                             <div class="app-footer-right">
                                 {% set timestamp_data = data.timestamp.split('.')[0].split(' ') %}
                                 <small class="me-2">Report Generated on:</small>

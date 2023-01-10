@@ -6,11 +6,11 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta http-equiv="Content-Language" content="en">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>{{data.name}}</title>
+    <title>Graphs</title>
     <meta name="viewport"
         content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, shrink-to-fit=no" />
     <meta name="description"
-        content="The diversity of the recommendations according to GiniIndex. The index is 0 when all items are chosen equally often, and 1 when a single item is always chosen.">
+        content="Key Performance Indicator (KPI) is a measurable value that demonstrates how effectively a company is achieving key business objectives.">
     <meta name="msapplication-tap-highlight" content="no">
     <!--
     =========================================================
@@ -23,6 +23,8 @@
     * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
     -->
     <script defer src="/static/assets/scripts/main.js"></script>
+    <script src='https://cdn.plot.ly/plotly-2.16.1.min.js'></script>
+    
     <link href="/static/main.css" rel="stylesheet">
 </head>
 
@@ -63,12 +65,12 @@
             </div>
             <div class="app-header__content">
                 <div class="app-header-left">
-                            <div class="widget-content"><span class="text-light h5">Report:</span></div> 
-                            <div class="widget-content"><select class="form-select" onchange="if (this.value) window.location.href=this.value">
-                                {%for item in data.reports | sort %}
-                                <option value="/ui/descriptions/metrics/{{data.metric_active}}?ref={{item}}" {%if item==data.ref %} selected {%endif%}>{{item}}</option>
-                                {%endfor%}
-                            </select></div>
+                        <div class="widget-content"><span class="text-light h5">Report:</span></div> 
+                        <div class="widget-content"><select class="form-select" onchange="if (this.value) window.location.href=this.value">
+                            {%for item in data.reports | sort %}
+                            <option value="/ui/reports/{{item}}/graphs" {%if item==data.report %} selected {%endif%}>{{item}}</option>
+                            {%endfor%}
+                        </select></div>
                 </div>
             </div>
         </div>
@@ -107,22 +109,9 @@
                     height: 20px;
                     z-index: 400;
                 }
-
-                .timeline-h {
-                    color: #3F6AD8;
-                }
             </style>
 
             <script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=default'></script>
-            <script type="text/x-mathjax-config">
-                MathJax.Hub.Config({
-                  tex2jax: {
-                    inlineMath: [ ['$','$'], ["\\(","\\)"] ],
-                    processEscapes: true
-                  }
-                });
-            </script>
-
 
             <div class="app-sidebar sidebar-shadow">
                 <div class="app-header__logo">
@@ -162,19 +151,19 @@
                         <ul class="vertical-nav-menu">
                             <li class="app-sidebar__heading">Metrics Dashboard</li>
                             <li>
-                                <a href="/ui/reports/{{data.ref}}" >
+                                <a href="/ui/reports/{{data.report}}">
                                     <i class="metismenu-icon pe-7s-rocket"></i>
                                     RS Metrics
                                 </a>
                             </li>
                             <li>
-                                <a href="/ui/reports/{{data.ref}}/kpis">
+                                <a href="/ui/reports/{{data.report}}/kpis">
                                     <i class="metismenu-icon pe-7s-key"></i>
                                     KPIs
                                 </a>
                             </li>
                             <li>
-                                <a href="/ui/reports/{{data.ref}}/graphs">
+                                <a href="/ui/reports/{{data.report}}/graphs" class="mm-active">
                                     <i class="metismenu-icon pe-7s-graph3"></i>
                                     Graphs
                                 </a>
@@ -182,7 +171,8 @@
                             <li class="app-sidebar__heading">Metrics Documentation</li>
                             {%for key, item in data.sidebar_info.metric_descriptions.items() | sort %}
                             <li>
-                                <a href="/ui/descriptions/metrics/{{key}}?ref={{data.ref}}" {%if key == data.metric_active %} class="mm-active" {%endif%} >
+                                <a href="/ui/descriptions/metrics/{{key}}?ref={{data.report}}" {%if key==data.metric_active %}
+                                    class="mm-active" {%endif%}>
                                     <i class="metismenu-icon {{item.style.icon}}"></i>
                                     {{item.fullname}}
                                 </a>
@@ -198,133 +188,166 @@
                         <div class="page-title-wrapper">
                             <div class="page-title-heading">
                                 <div class="page-title-icon">
-                                    <i class="{{data.style.icon}} icon-gradient {{data.style.color}}">
+                                    <i class="pe-7s-graph3 icon-gradient bg-sunny-morning">
                                     </i>
                                 </div>
-                                <div>{{data.name}}
-                                    <div class="page-title-subheading">{{data.summary}}
+                                <div>Graphs
+                                    <div class="page-title-subheading">Graphic visualisations of various metrics
                                     </div>
                                 </div>
+                            </div>
+                            <div class="page-title-actions">
+                                {% set start_data = data.start.value.split('.')[0].split(' ') %}
+                                {% set end_data = data.end.value.split('.')[0].split(' ') %}
+                                <small>Start Date:</small>
+                                <div class="mb-2 me-2 badge bg-secondary" data-toggle="tooltip" data-bs-toggle="tooltip"
+                                    data-bs-placement="bottom" title="{{start_data[0]}}T{{end_data[1]}}"> <i
+                                        class="fa fa-calendar"></i> {{start_data[0]}}</div>
+                                <small>End Date:</small>
+                                <div class="mb-2 me-2 badge bg-secondary" data-toggle="tooltip" data-bs-toggle="tooltip"
+                                    data-bs-placement="bottom" title="{{end_data[0]}}T{{end_data[1]}}"><i
+                                        class="fa fa-calendar"></i> {{end_data[0]}}</div>
                             </div>
                         </div>
                     </div>
-                    <div class="mb-2 me-2 badge bg-warning">metric</div>
                     <div class="row">
                         <div class="col-md-6">
-                            <div class="main-card mb-3 card">
+                            <div class="card mb-3 main-card">
                                 <div class="card-body">
-                                    <h5 class="card-title">Description
-                                    </h5>
-                                    <p>{{data.description}}
-                                    </p>
+                                    <div class="card-header">User actions per day</div>
+                                    <div id="chart-user-actions"></div>
                                 </div>
-                            </div>
-                            <div class="main-card mb-3 card">
-                                <div class="card-header-tab card-header">
-                                    <div class="card-header-title">
-                                     
-
-                                    </div>
-                                    <ul class="nav">
-                                        <li class="nav-item"><a data-bs-toggle="tab" href="#tab-eg5-0"
-                                                class="nav-link active">Output</a></li>
-                                        <li class="nav-item"><a data-bs-toggle="tab" href="#tab-eg5-1"
-                                                class="nav-link">Prerequisites</a></li>
-                                    </ul>
-                                </div>
-
-
-
-
-
-
-
-                                <div class="card-body">
-                                    <div class="tab-content">
-                                        <div class="tab-pane active" id="tab-eg5-0" role="tabpanel">
-                                            <p>
-                                            <div class="col-md-4">
-
-                                                <div class="mb-4 me-4">
-                                                    <span class="card-title">Type</span>&nbsp;&nbsp;<span
-                                                        class="badge bg-warning">{{data.output.type}}</span>
-                                                </div>
-                                            </div>
-
-
-
-                                            <h5 class="card-title">Range Values</h5>
-                                            <div class="text-center">Min={{data.output.min}} to Max={{data.output.max}}</div>
-                                            <div class="mb-3 progress">
-                                                <div class="progress-bar bg-success" role="progressbar"
-                                                    aria-valuenow="15" aria-valuemin="0" aria-valuemax="55"
-                                                    style="width: 50%;"></div>
-                                                <div class="progress-bar bg-warning" role="progressbar"
-                                                    aria-valuenow="10" aria-valuemin="0" aria-valuemax="55"
-                                                    style="width: 50%;"></div>
-
-                                            </div>
-                                            <div><i>{{data.output.comment}}</i></div>
-
-
-                                            </p>
-                                        </div>
-                                        <div class="tab-pane" id="tab-eg5-1" role="tabpanel">
-                                            {%for item in data.prerequisites %}
-                                            <p>
-                                               {{item}}
-                                            </p>
-                                            {%endfor%}
-                                        </div>
-                                    </div>
-                                </div>
+                               
                             </div>
                         </div>
+
                         <div class="col-md-6">
-                            <div class="main-card mb-3 card">
+                            <div class="card mb-3 main-card">
                                 <div class="card-body">
-                                    <h5 class="card-title">Process
-                                    </h5>
-                                    <p>
-                                    <ul class="timeline">
-                                        {%for item in data.process %}
-                                        <li>
-                                            <span class="timeline-h">{{item.step}}</span>
-                                            <p>{{item.details}}</p>
-                                        </li>
-                                        {%endfor%}
-                                    </ul>
-                                    </p>
+                                    <div class="card-header">Recommended items per day</div>
+                                    <div id="chart-rec-items"></div>
                                 </div>
+                               
                             </div>
                         </div>
                     </div> <!-- row -->
+
+                    <div class="app-footer-right">
+                        {% set timestamp_data = data.timestamp.split('.')[0].split(' ') %}
+                        <small class="me-2">Report Generated on:</small>
+                        <div class="mb-2 me-2 badge bg-secondary" data-toggle="tooltip" data-bs-toggle="tooltip"
+                            data-bs-placement="bottom" title="{{timestamp_data[0]}}T{{timestamp_data[1]}}"><i
+                                class="fa fa-calendar"></i> {{timestamp_data[0]}}</div>
+                    </div>    
+
                 </div> <!-- inner -->
-                <div class="app-wrapper-footer">
-                    <div class="app-footer">
-                        <div class="app-footer__inner">
-                            <div class="px-4">Copyright &copy;
-                                <script
-                                    type="text/javascript"> document.write(new Date().getFullYear()); </script>
+                
+                        <div class="app-footer">
+                        
+                            <div class="app-footer__inner">
+                                <div class="px-4">Copyright &copy;
+                                    <script
+                                        type="text/javascript"> document.write(new Date().getFullYear()); </script>
+                                    
+                                        GRNET</div>
+                                        <div class="app-footer-left">
+                                            <ul class="nav">
+                                            <li class="nav-item">
+                                               <a class="nav-link" target="_blank" href="http://argoeu.github.io/eosc-recommender-metrics/docs/policies/terms">Terms of Use</a>
+                                            </li>
+                                            <li class="nav-item">
+                                                <a class="nav-link" target="_blank" href="http://argoeu.github.io/eosc-recommender-metrics/docs/policies/tom">TOM</a>
+                                             </li>
+                                          
+                                        </ul>
+                                    </div>
                                 
-                                    GRNET</div>
-                                    <div class="app-footer-left">
-                                        <ul class="nav">
-                                        <li class="nav-item">
-                                           <a class="nav-link" target="_blank" href="http://argoeu.github.io/eosc-recommender-metrics/docs/policies/terms">Terms of Use</a>
-                                        </li>
-                                        <li class="nav-item">
-                                            <a class="nav-link" target="_blank" href="http://argoeu.github.io/eosc-recommender-metrics/docs/policies/tom">TOM</a>
-                                         </li>
-                                      
-                                    </ul>
+                                <div class="app-footer-right">
+                                    {% set timestamp_data = data.timestamp.split('.')[0].split(' ') %}
+                                    <small class="me-2">Report Generated on:</small>
+                                    <div class="mb-2 me-2 badge bg-secondary" data-toggle="tooltip" data-bs-toggle="tooltip"
+                                        data-bs-placement="bottom" title="{{timestamp_data[0]}}T{{timestamp_data[1]}}"><i
+                                            class="fa fa-calendar"></i> {{timestamp_data[0]}}</div>
                                 </div>
-                        </div>
+                            </div>
+                      
                     </div>
                 </div>
             </div> <!-- outer -->
         </div>
     </div>
+    <script>
+
+       const report = "{{data.report}}"
+       
+       // transform data from api response to two arrays of labels and values
+       function txData(response){
+            // json response holds data in the "value" field as a nested array
+            data = response.value
+            // prepare the two arrays of labels and values that will be used for charting
+            labels = []
+            values = []
+
+            // for each item in the array of daily values:
+            // - add the date "YYYY-MM-DD" to the labels array
+            // - add the corresponding value to the values array 
+            for (datum of data) {
+                labels.push(datum.date)
+                values.push(datum.value)
+            }
+
+            // return the two filled arrrays as a result
+            return [labels,values]
+        }
+
+        // having the api data render a timeseries barchart in the specific divName div, using the specific color
+        function renderTimeseries(data,divName,color) {
+           
+            // get the two arrays from transforming the data
+            let [labels, values] = txData(data)
+
+            // prepare the configuration construct for plotly chart lib
+            var data = [
+                {
+                    x: labels,
+                    y: values,
+                    type: 'bar',
+                    marker: {
+                        color: color
+                    }
+                }
+            ];
+
+            // create a new timeseries bar chart in plotly
+            Plotly.newPlot(divName, data,null,{'displaylogo': false});
+        }
+
+        // prep Fetch headers
+        var myHeaders = new Headers();
+        myHeaders.append("Accept", "application/json");
+       
+        // prep Fetch options
+        var requestOptions = {
+        method: 'GET',
+        headers: myHeaders,
+        redirect: 'follow'
+        };
+
+        // Do a fetch to the api for user actions per day and draw the chart
+        fetch("/api/reports/"+report+"/statistics/user_actions_per_day", requestOptions)
+        .then(response => response.json())
+        .then(result => renderTimeseries(result,'chart-user-actions','#FFA15A'))
+        .catch(error => console.log('error', error)); 
+
+       // Do a fetch to the api for recommended items per day and draw the chart
+       fetch("/api/reports/"+report+"/statistics/recommended_items_per_day", requestOptions)
+        .then(response => response.json())
+        .then(result => renderTimeseries(result,'chart-rec-items','#1F77B4'))
+        .catch(error => console.log('error', error)); 
+        
+
+        
+    </script>
 </body>
 
 </html>

@@ -609,25 +609,44 @@ def top5_services_ordered(object, k=5, base='https://marketplace.eosc-portal.eu'
 
     return topk_services
 
-@statistic('A dictionary of the number of recommendations per day')
-def recommendations_per_day(object):
+@statistic('A dictionary of the number of recommended items per day')
+def recommended_items_per_day(object):
     """
-    It returns a statistical report in dictionary format. Specifically, the key 
-    is set for each particular day found and its value contains the respective 
-    number of recommendations committed. The dictionary includes all in-between 
-    days (obviously, with the count set to zero). Recommendations are already 
-    filtered by those where the user or service does not exist in users' or services' catalogs.
+    It returns a a timeseries of recommended item counts per day. Each timeseries item has two fields: date and value
     """
     # count recommendations for each day found in entries
     res=object.recommendations.groupby(by=object.recommendations['Timestamp'].dt.date).count().iloc[:,0]
 
-    # fill the in between days with zero recommendations
-    res=res.asfreq('D', fill_value=0)
+    # create a Series with period's start and end times and value of 0
+    init=pd.Series([0,0],index=[pd.to_datetime(start(object)).date(), pd.to_datetime(end(object)).date()])
+
+    # remove duplicate entries for corner cases where start and end time match
+    init.drop_duplicates(keep='first', inplace=True)
+
+    # append above two indexes and values (i.e. 0) to the Series
+    # with axis=1, same indexes are being merged
+    # since dataframe is created, get the first column
+    res=pd.concat([res,init],ignore_index=False, axis=1).iloc[:, 0]
     
+    # convert Nan values created by the concatenation to 0
+    # and change data type back to int
+    res=res.fillna(0).astype(int)
+
+    # fill the in between days with zero user_actions
+    res=res.asfreq('D', fill_value=0)
+   
     # convert datetimeindex to string
     res.index=res.index.format()
 
-    return res.to_dict()
+    # convert series to dataframe with extra column having the dates
+    res = res.to_frame().reset_index()
+
+    # rename columns to date, value
+    res.rename(columns={ res.columns[0]: "date", res.columns[1]: "value" }, inplace = True)
+    
+    # return a list of objects with date and value fields
+    return res.to_dict(orient='records')
+    
 
 @statistic('A dictionary of the number of user actions per day')
 def user_actions_per_day(object):
@@ -644,10 +663,93 @@ def user_actions_per_day(object):
     # count user_actions for each day found in entries
     res=object.user_actions.groupby(by=object.user_actions['Timestamp'].dt.date).count().iloc[:,0]
 
+    # create a Series with period's start and end times and value of 0
+    init=pd.Series([0,0],index=[pd.to_datetime(start(object)).date(), pd.to_datetime(end(object)).date()])
+
+    # remove duplicate entries for corner cases where start and end time match
+    init.drop_duplicates(keep='first', inplace=True)
+
+    # append above two indexes and values (i.e. 0) to the Series
+    # with axis=1, same indexes are being merged
+    # since dataframe is created, get the first column
+    res=pd.concat([res,init],ignore_index=False, axis=1).iloc[:, 0]
+    
+    # convert Nan values created by the concatenation to 0
+    # and change data type back to int
+    res=res.fillna(0).astype(int)
+
     # fill the in between days with zero user_actions
     res=res.asfreq('D', fill_value=0)
-    
+
     # convert datetimeindex to string
     res.index=res.index.format()
 
-    return res.to_dict()
+    # convert series to dataframe with extra column having the dates
+    res = res.to_frame().reset_index()
+
+    # rename columns to date, value
+    res.rename(columns={ res.columns[0]: "date", res.columns[1]: "value" }, inplace = True)
+    
+    # return a list of objects with date and value fields
+    return res.to_dict(orient='records')
+
+@metric('The mean value of the accuracy score found for each user defined by the fraction of the number of the correct predictions by the total number of predictions')
+def accuracy(object):
+    """
+    Calculate the accuracy score found for each and retrieve the mean value. 
+    The score is calculated by dividing the number of the correct predictions 
+    by the total number of predictions.
+    """
+    # a list of unique services' ids found in Datastore
+    services_list=object.services['Service'].unique().tolist()
+    # the length of the above value
+    len_services=services(object)
+
+    def score(x):
+        """
+        Inner function called at each row of the final dataframe
+        in order to calculate the accuracy score for each row (=user)
+        """
+        # 'Services' header indicates the accessed services' list,
+        # while the 'Service' header indicates the recommended services' list
+        # if accessed or recommended services' list is empty
+        # it does not calculate any further computations
+        # else for each service found in services_list,
+        # put 1 or 0 if it is also found in the accessed or 
+        # recommended services respectively
+        if not x['Services']:
+           true_values=np.array([0]*len_services)
+        else:
+           true_values=np.array(list(map(lambda s: 1 if s in x['Services'] else 0,services_list)))
+        if not x['Service']:
+           pred_values=np.array([0]*len_services)
+        else:
+           pred_values=np.array(list(map(lambda s: 1 if s in x['Service'] else 0,services_list)))
+
+        # calculate the accuracy score by computing the average of the returned array
+        # The returned array is a True/False array when the respective element of true_values 
+        # is equal or not to the respective element of pred_values
+        x['Services']=np.average(true_values==pred_values)
+        # return the row, where the 'Services' column has the accuracy score now
+        return x
+
+    # a matrix of User ids and the respective accessed services' ids
+    access_df=object.users[['User','Services']]
+
+    # a matrix of User ids and the respective recommended services' ids
+    rec_df=(object.recommendations[['User','Service']].groupby(['User'])
+      .agg({'Service': lambda x: x.unique().tolist()})
+      .reset_index())
+
+    # performs a left join on User id, which means that nan values 
+    # are set for cases where no recommendations were made
+    data=pd.merge(access_df, rec_df, on='User', how='left')
+    # convert nan values to zeros, in order to be handled easily by the inner function
+    data.fillna(0, inplace = True)
+    # apply the score function row-wise
+    data=data.apply(score, axis=1)
+
+    # return the mean value of all users' accuracy score
+    # up to 4 digits precision
+    return round(data['Services'].mean(),4)
+

@@ -102,7 +102,7 @@ def html_metrics(provider_name):
         result[stat_name] = get_statistic(provider_name, stat_name).get_json()
 
     metrics_needed = ['user_coverage', 'catalog_coverage',
-                      'diversity', 'diversity_gini', 'novelty']
+                      'diversity', 'diversity_gini', 'novelty', 'accuracy']
 
     for metric_name in metrics_needed:
         result[metric_name] = get_metric(provider_name, metric_name).get_json()
@@ -141,6 +141,27 @@ def html_kpis(provider_name):
     result['metric_active'] = None
 
     return render_template('./kpis.html', data=result)
+
+@app.route("/ui/reports/<string:provider_name>/graphs", strict_slashes=False)
+def html_graphs(provider_name):
+    '''Serve html page about graphs per provider'''
+    reports = db_get_provider_names()
+    if not provider_name in reports:
+        abort(404)
+
+    result = {}
+
+    stats_needed = ['start', 'end']
+    for stat_name in stats_needed:
+        result[stat_name] = get_statistic(provider_name, stat_name).get_json()
+
+    result['timestamp'] = get_api_index(provider_name).get_json()['timestamp']
+    result['sidebar_info'] = app.sidebar_info
+    result['report'] = provider_name
+    result['reports'] = reports
+    result['metric_active'] = None
+
+    return render_template('./graphs.html', data=result)
 
 
 @app.route("/ui/descriptions/metrics/<string:metric_name>", strict_slashes=False)
