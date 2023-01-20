@@ -74,7 +74,6 @@ the particular provider and store them in the `Datastore`:
 
 8. Run from terminal:
 `./rsmetrics.py -p <provider>` 
-
 in order to gather the respective data
 (`users`, `resources`, `user_actions` and `recommendations`),
 calculate `statistics` and `metrics` and store them in the `Datastore`,
