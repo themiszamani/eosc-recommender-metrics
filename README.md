@@ -9,6 +9,8 @@ A framework for counting the recommender metrics
 <img src="https://github.com/nikosT/eosc-recommender-metrics/blob/master/docs/Preprocessor.png" width="70%"/>
 </a>
 </p>
+![Preprocessor v.0.2](/eosc-recommender-metrics/blob/master/docs/Preprocessor.png "Preprocessor v.0.2").
+
 
 ## RS metrics v.0.2
 
