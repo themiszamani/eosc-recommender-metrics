@@ -5,30 +5,45 @@ A framework for counting the recommender metrics
 ## Preprocessor v.0.2
 
 <p align="center">
-<a href="https://github.com/nikosT/eosc-recommender-metrics/blob/master/docs/Preprocessor.png">
-<img src="https://github.com/nikosT/eosc-recommender-metrics/blob/master/docs/Preprocessor.png" 
+<a href="/nikosT/eosc-recommender-metrics/blob/master/docs/Preprocessor.png">
+<img src="/nikosT/eosc-recommender-metrics/blob/master/docs/Preprocessor.png"
 alt="Preprocessor v.0.2"
 width="70%"/>
+</a>
+</p>
 
 ## RS metrics v.0.2
 
 <p align="center">
-<a href="https://github.com/nikosT/eosc-recommender-metrics/blob/master/docs/RSmetrics.png">
-<img src="https://github.com/nikosT/eosc-recommender-metrics/blob/master/docs/RSmetrics.png" width="70%"/>
+<a href="/nikosT/eosc-recommender-metrics/blob/master/docs/RSmetrics.png">
+<img src="/nikosT/eosc-recommender-metrics/blob/master/docs/RSmetrics.png"
+alt="RS metrics v.0.2"
+width="70%"/>
 </a>
 </p>
 
 ## Dependencies
 
-1. Install Conda from [here](https://docs.conda.io/projects/conda/en/latest/user-guide/install/linux.html). Tested on conda v 4.10.3.
-2. Run from terminal: `conda env create -f environment.yml`
-3. Run from terminal: `conda activate rsmetrics`
-4. Run from terminal: `chmod +x ./preprocessor.py ./preprocessor_common.py ./rsmetrics.py`
+1. Install Conda from
+[here]
+(https://docs.conda.io/projects/conda/en/latest/user-guide/install/linux.html)
+Tested on conda v 4.10.3.
+2. Run from terminal:
+`conda env create -f environment.yml`
+3. Run from terminal:
+`conda activate rsmetrics`
+4. Run from terminal:
+`chmod +x ./preprocessor.py ./preprocessor_common.py ./rsmetrics.py`
 
 ## Usage
 
-5. Configure `./preprocessor_common.py`, `./preprocessor.py` and `./rsmetrics.py` by editting the `config.yaml` or providing another with `-c`.
-6. Run from terminal: `./preprocessor_common.py` in order to gather `users` and `resources` and store them in the `Datastore`:
+5. Configure
+`./preprocessor_common.py`, `./preprocessor.py` and `./rsmetrics.py` 
+by editting the `config.yaml` or providing another with `-c`.
+6. Run from terminal:
+`./preprocessor_common.py` in order to gather `users` and `resources` 
+and store them in the `Datastore`:
+
 ```bash
 ./preprocessor_common.py # this will ingest users and resources [from scratch] by retrieving the data from 'cyfronet' provider (which is specified in the config file
 ./preprocessor_common.py -p cyfronet # equivalent to first one
