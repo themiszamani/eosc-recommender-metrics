@@ -4,23 +4,13 @@ A framework for counting the recommender metrics
 
 ## Preprocessor v.0.2
 
-<p align="center">
-<a href="/nikosT/eosc-recommender-metrics/blob/master/docs/Preprocessor.png">
-<img src="/nikosT/eosc-recommender-metrics/blob/master/docs/Preprocessor.png"
-alt="Preprocessor v.0.2"
-width="70%"/>
-</a>
-</p>
+![Preprocessor v.0.2](https://github.com/nikosT/eosc-recommender-metrics/blob/master/docs/Preprocessor.png "Preprocessor v.0.2").
+
 
 ## RS metrics v.0.2
 
-<p align="center">
-<a href="/nikosT/eosc-recommender-metrics/blob/master/docs/RSmetrics.png">
-<img src="/nikosT/eosc-recommender-metrics/blob/master/docs/RSmetrics.png"
-alt="RS metrics v.0.2"
-width="70%"/>
-</a>
-</p>
+![RSmetrics v.0.2](https://github.com/nikosT/eosc-recommender-metrics/blob/master/docs/RSmetrics.png "RSmetrics v.0.2").
+
 
 ## Dependencies
 
@@ -28,49 +18,79 @@ width="70%"/>
 [here]
 (https://docs.conda.io/projects/conda/en/latest/user-guide/install/linux.html)
 Tested on conda v 4.10.3.
+
 2. Run from terminal:
 `conda env create -f environment.yml`
+
 3. Run from terminal:
 `conda activate rsmetrics`
+
 4. Run from terminal:
 `chmod +x ./preprocessor.py ./preprocessor_common.py ./rsmetrics.py`
 
 ## Usage
 
 5. Configure
-`./preprocessor_common.py`, `./preprocessor.py` and `./rsmetrics.py` 
+`./preprocessor_common.py`, `./preprocessor.py` and `./rsmetrics.py`
 by editting the `config.yaml` or providing another with `-c`.
+
 6. Run from terminal:
-`./preprocessor_common.py` in order to gather `users` and `resources` 
+`./preprocessor_common.py` in order to gather `users` and `resources`
 and store them in the `Datastore`:
 
 ```bash
-./preprocessor_common.py # this will ingest users and resources [from scratch] by retrieving the data from 'cyfronet' provider (which is specified in the config file
-./preprocessor_common.py -p cyfronet # equivalent to first one
-./preprocessor_common.py -p cyfronet --use-cache # equivalent to first one but use the cache file to read resources instead of downloading them via the EOSC Marketplace
-./preprocessor_common.py -p athena # currently is not working since users collection only exist in 'cyfronet'
+# this will ingest users and resources [from scratch]
+# by retrieving the data from 'cyfronet' provider (which is specified in the config file
+./preprocessor_common.py 
+
+# equivalent to first one
+./preprocessor_common.py -p cyfronet 
+
+# equivalent to first one but use the cache 
+# file to read resources instead of downloading them via the EOSC Marketplace
+./preprocessor_common.py -p cyfronet --use-cache
+
+# currently is not working since users collection
+# only exist in 'cyfronet'
+./preprocessor_common.py -p athena 
 ```
+
 7. Run from terminal:
-`./preprocessor.py -p <provider>` in order to gather `user_actions` 
-and `recommendations` from the particular provider and store them 
-in the `Datastore`:
+`./preprocessor.py -p <provider>` 
+in order to gather `user_actions` and `recommendations` from 
+the particular provider and store them in the `Datastore`:
 
 ```bash
-./preprocessor.py # this will ingest user_actions and recommendations [from scratch] by retrieving the data from 'cyfronet' provider (which is specified in the config file
-./preprocessor.py -p cyfronet # equivalent to first one
-./preprocessor.py -p athena # same procedure as the first one but for 'athena' provider
+# this will ingest user_actions and recommendations [from scratch]
+# by retrieving the data from 'cyfronet' provider (which is specified in the config file
+./preprocessor.py 
+
+# equivalent to first one
+./preprocessor.py -p cyfronet 
+
+# same procedure as the first one but for 'athena' provider
+./preprocessor.py -p athena 
 ```
 
-9. Run from terminal:
-`./rsmetrics.py -p <provider>` in order to gather the respective data
+8. Run from terminal:
+`./rsmetrics.py -p <provider>` 
+
+in order to gather the respective data
 (`users`, `resources`, `user_actions` and `recommendations`),
 calculate `statistics` and `metrics` and store them in the `Datastore`,
 concerning that particular provider:
 
 ```bash
-./rsmetrics.py # this will calculate and store statistics and metrics concerning data (users, resources, user_actions and recommendations) concerning the specified provider (which by default is 'cyfronet')
-./rsmetrics.py -p cyfronet # equivalent to first one
-./rsmetrics.py -p athena # same procedure as the first one for 'athena' provider
+# this will calculate and store statistics and metrics
+# concerning data (users, resources, user_actions and recommendations)
+# concerning the specified provider (which by default is 'cyfronet')
+./rsmetrics.py 
+
+# equivalent to first one
+./rsmetrics.py -p cyfronet 
+
+# same procedure as the first one for 'athena' provider
+./rsmetrics.py -p athena 
 ```
 
 ### Reporting
@@ -81,10 +101,12 @@ automatically served from a spawed localserver
 and automatically opens the default browser to present the report.
 
 To execute the script issue:
+
 ```
 chmod u+X ./report.py
 report.py
 ```
+
 The script will automatically look for evaulation result files
 in the default folder `./data` and will output the report
 in the default folder: `./report`
@@ -127,6 +149,7 @@ This script contacts EOSC Marketplace catalog and generates
 a csv with a list of all available services, their name, id and url
 
 To execute the script issue:
+
 ```
 chmod u+x ./get_service_catalog.py
 ./get_service_catalog.py
@@ -161,11 +184,11 @@ flask run -h 127.0.0.1 -p 8080
 
 There is an env variable `RS_EVAL_METRIC_SOURCE` which directs the webservice
 to the generated `metrics.json` file produced after the evaluation process.
-This by default honors this repo's folder structure and directs to 
+This by default honors this repo's folder structure and directs to
 the root `/data/metrics.json` path
 
 You can override this by editing the `.env` file inside the `/webservice`
 folder, or specificy the `RS_EVAL_METRIC_SOURCE` variable accordingly
 before executing the `flask run` command
 
-_Tested with python 3.9_
+Tested with **python 3.9**
