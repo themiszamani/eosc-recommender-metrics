@@ -4,7 +4,7 @@ A framework for counting the recommender metrics
 
 ## Preprocessor v.0.2
 
-![Preprocessor v.0.2](https://github.com/nikosT/eosc-recommender-metrics/blob/master/docs/Preprocessor.png "Preprocessor v.0.2" width="70%").
+![Preprocessor v.0.2](https://github.com/nikosT/eosc-recommender-metrics/blob/master/docs/Preprocessor.png "Preprocessor v.0.2").
 
 
 ## RS metrics v.0.2
